@@ -1,0 +1,24 @@
+# configs/default.yaml
+# TierLab 默认运行与策略配置
+
+policy: "tierlab"
+backend: "mock"        # "mock" 或 "real"，换成 real 时连接 models.yaml 中的模型
+seed: 0
+
+controller:
+  k_init: 2
+  k_min: 1
+  k_max: 8
+  top_m_for_l2: 2
+  cascade_fail_threshold: 3
+  no_widen: false
+  no_lessons: false
+  alpha: 0.0001
+  noise_threshold: 0.05
+
+budget:
+  cloud_budget_cny: 5.0
+  max_wall_clock_s: 300.0
+  max_steps: 15
+  min_delta_per_cny_threshold: 0.01
+  recent_r_consultations: 3

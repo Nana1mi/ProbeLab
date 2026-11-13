@@ -1,0 +1,13 @@
+[PLACEHOLDER SYNTHETIC TEST PAPER - FOR FRAMEWORK TESTING ONLY]
+
+Paragraph 0: Title and Introduction
+This synthetic document provides placeholder text to verify quote-grounding, paragraph localization, and question-answering verification for TierLab. No real scientific paper contents are contained herein.
+
+Paragraph 1: Architecture and Methods
+Our test setup evaluates two coordinating modules: a local solver and an escalation advisor. We compare our approach against the SimpleGreedy baseline. The local solver operates with bounded latency and high parallelism.
+
+Paragraph 2: Evaluation and Memory Findings
+All benchmarks were executed on an isolated test workstation. Under full load, the system reached a peak memory usage of 4.2 GB. The communication overhead remained below 12 milliseconds per round.
+
+Paragraph 3: Synthesis and Discussion
+Integrating local speculative execution with hierarchical escalation effectively minimizes edge latency while preserving verification guarantees. The trade-off between local widening and escalation governs overall efficiency.

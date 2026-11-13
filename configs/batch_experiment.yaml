@@ -1,0 +1,30 @@
+# configs/batch_experiment.yaml
+# 批量实验配置：支持多任务 x 多策略 x 多种子
+
+tasks:
+  - "math"
+  - "code"
+  - "paper"
+
+policies:
+  - "tierlab"
+  - "all_cloud"
+  - "all_local"
+  - "cascade"
+
+seeds:
+  - 0
+  - 1
+  - 42
+
+backend: "mock"
+
+budget:
+  cloud_budget_cny: 5.0
+  max_wall_clock_s: 180.0
+  max_steps: 10
+
+controller:
+  k_init: 2
+  k_min: 1
+  k_max: 4

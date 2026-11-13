@@ -1,0 +1,48 @@
+# configs/models.yaml
+# 模型网关配置：模型名、base_url、token 单价（单位：元 / 百万 tokens）
+# 真实使用时请根据服务商定价页填入实际价格与密钥环境变量
+
+cloud_model:
+  name: "cloud-flagship-model"  # 云端大模型，按服务商实际模型名填写（如 DeepSeek-V3 / Qwen-Max）
+  base_url: "https://api.siliconflow.cn/v1"
+  api_key_env: "SILICONFLOW_API_KEY"
+  pricing:
+    # 按定价页填写（单位：元 / 百万 tokens）
+    prompt_cny_per_m: 2.0       # 按定价页填写
+    cached_cny_per_m: 0.5       # 按定价页填写
+    completion_cny_per_m: 8.0   # 按定价页填写
+  supports_guided_decoding: false
+  timeout_s: 60.0
+  max_retries: 3
+
+local_model:
+  name: "local-vllm-model"      # 本地 vLLM 部署的模型标识（如 Qwen2.5-32B-Instruct）
+  base_url: "http://127.0.0.1:8000/v1"
+  api_key_env: "LOCAL_API_KEY"
+  pricing:
+    # 本地模型运行于固定租赁 GPU，token 边际费用为 0
+    prompt_cny_per_m: 0.0       # 本地边际成本为 0
+    cached_cny_per_m: 0.0       # 本地边际成本为 0
+    completion_cny_per_m: 0.0   # 本地边际成本为 0
+  supports_guided_decoding: true
+  timeout_s: 30.0
+  max_retries: 2
+
+cloud_small_model:
+  name: "cloud-small-model"     # 同款弱模型的云端 API（规格 #8，用于消融与对比）
+  base_url: "https://api.siliconflow.cn/v1"
+  api_key_env: "SILICONFLOW_API_KEY"
+  pricing:
+    # 按定价页填写（单位：元 / 百万 tokens）
+    prompt_cny_per_m: 1.8       # 按定价页填写
+    cached_cny_per_m: 0.4       # 按定价页填写
+    completion_cny_per_m: 5.0   # 按定价页填写
+  supports_guided_decoding: false
+  timeout_s: 30.0
+  max_retries: 2
+
+# 本地 RTX 4090 租金单价（元 / 秒）: 约 2.16 元/小时 => 0.0006 元/秒
+rho_gpu_cny_per_s: 0.0006
+
+# 时间价值系数 alpha（单位：元 / 分钟），在程序中换算为 元 / 秒（规格 #9）
+alpha_cny_per_min: 0.006
