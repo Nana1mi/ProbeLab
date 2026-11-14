@@ -1,0 +1,355 @@
+{
+  "provider": "siliconflow",
+  "weak_model": "Qwen/Qwen3.6-35B-A3B",
+  "strong_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "local_gpu_measurement": false,
+  "download_paused": true,
+  "tests": {
+    "passed": 113,
+    "warnings": 1,
+    "seconds": 37.62
+  },
+  "baseline": {
+    "math": {
+      "valid": 0,
+      "think_leak": 0,
+      "truncated": 8,
+      "empty": 0,
+      "api_errors": 0,
+      "sigs": {
+        "format/invalid_format": 8
+      },
+      "scores": [],
+      "median_s": 43.35060640000029,
+      "p95_s": 43.44428549999975,
+      "max_s": 43.44428549999975,
+      "over_30s": 8,
+      "n": 8,
+      "valid_rate": 0.0,
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "input_tokens": 5960,
+      "output_tokens": 16384,
+      "reasoning_tokens": 0,
+      "estimated_cloud_cny": 0.18767520000000001
+    },
+    "code": {
+      "valid": 0,
+      "think_leak": 0,
+      "truncated": 0,
+      "empty": 8,
+      "api_errors": 8,
+      "sigs": {
+        "api/InternalServerError": 8
+      },
+      "scores": [],
+      "median_s": 269.51954145000036,
+      "p95_s": 269.88885449999907,
+      "max_s": 269.88885449999907,
+      "over_30s": 8,
+      "n": 8,
+      "valid_rate": 0.0,
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "reasoning_tokens": 0,
+      "estimated_cloud_cny": 0.0
+    },
+    "paper": {
+      "valid": 3,
+      "think_leak": 0,
+      "truncated": 0,
+      "empty": 5,
+      "api_errors": 5,
+      "sigs": {
+        "ok": 3,
+        "api/InternalServerError": 5
+      },
+      "scores": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "median_s": 1.0040349000000788,
+      "p95_s": 3.886518100000103,
+      "max_s": 3.886518100000103,
+      "over_30s": 0,
+      "n": 8,
+      "valid_rate": 0.375,
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "input_tokens": 3243,
+      "output_tokens": 456,
+      "reasoning_tokens": 0,
+      "estimated_cloud_cny": 0.010762200000000001
+    }
+  },
+  "tuned": {
+    "math": {
+      "valid": 1,
+      "think_leak": 0,
+      "truncated": 3,
+      "empty": 0,
+      "api_errors": 0,
+      "sigs": {
+        "math/circle_overlap": 2,
+        "format/invalid_format": 5,
+        "ok": 1
+      },
+      "scores": [
+        0.96449
+      ],
+      "median_s": 40.0715225999993,
+      "p95_s": 49.58476389999851,
+      "max_s": 49.58476389999851,
+      "over_30s": 6,
+      "n": 8,
+      "valid_rate": 0.125,
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "max_tokens": 4096,
+      "concurrency": 2,
+      "candidate_format": "json_code",
+      "input_tokens": 6328,
+      "output_tokens": 25566,
+      "reasoning_tokens": 0,
+      "estimated_cloud_cny": 0.28750320000000007
+    },
+    "code": {
+      "valid": 6,
+      "think_leak": 0,
+      "truncated": 0,
+      "empty": 0,
+      "api_errors": 0,
+      "sigs": {
+        "code/suspicious_timing": 2,
+        "ok": 6
+      },
+      "scores": [
+        1.4081,
+        1.5314,
+        1.4166,
+        1.3866,
+        1.3948,
+        0.1
+      ],
+      "median_s": 6.046540949999326,
+      "p95_s": 14.774578100001236,
+      "max_s": 14.774578100001236,
+      "over_30s": 0,
+      "n": 8,
+      "valid_rate": 0.75,
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "max_tokens": 4096,
+      "concurrency": 2,
+      "candidate_format": "json_code",
+      "input_tokens": 6528,
+      "output_tokens": 3964,
+      "reasoning_tokens": 0,
+      "estimated_cloud_cny": 0.05456160000000001,
+      "correctness_passed": 8
+    },
+    "paper": {
+      "valid": 8,
+      "think_leak": 0,
+      "truncated": 0,
+      "empty": 0,
+      "api_errors": 0,
+      "sigs": {
+        "ok": 8
+      },
+      "scores": [
+        1.0,
+        0.5,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        0.5
+      ],
+      "median_s": 3.1063254500022595,
+      "p95_s": 4.581456700001581,
+      "max_s": 4.581456700001581,
+      "over_30s": 0,
+      "n": 8,
+      "valid_rate": 1.0,
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "max_tokens": 4096,
+      "concurrency": 2,
+      "candidate_format": "raw",
+      "input_tokens": 8648,
+      "output_tokens": 1215,
+      "reasoning_tokens": 0,
+      "estimated_cloud_cny": 0.028688400000000003
+    }
+  },
+  "api_throughput": [
+    {
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "fixed_output_length": false,
+      "k": 1,
+      "wall_s": 33.98172599999998,
+      "total_tokens": 2048,
+      "total_tokens_per_s": 60.26768622641478,
+      "api_errors": 0,
+      "median_s": 33.98159399999895,
+      "p95_s": 33.98159399999895,
+      "max_s": 33.98159399999895,
+      "over_30s": 1,
+      "estimated_cloud_cny": 0.022159800000000004
+    },
+    {
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "fixed_output_length": false,
+      "k": 2,
+      "wall_s": 36.3259663000008,
+      "total_tokens": 4096,
+      "total_tokens_per_s": 112.75680779343534,
+      "api_errors": 0,
+      "median_s": 36.30265059999965,
+      "p95_s": 36.32582369999909,
+      "max_s": 36.32582369999909,
+      "over_30s": 2,
+      "estimated_cloud_cny": 0.04431960000000001
+    },
+    {
+      "provider": "siliconflow",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "fixed_output_length": false,
+      "k": 4,
+      "wall_s": 37.21562769999946,
+      "total_tokens": 8192,
+      "total_tokens_per_s": 220.12258038576948,
+      "api_errors": 0,
+      "median_s": 37.2101647999998,
+      "p95_s": 37.21550010000101,
+      "max_s": 37.21550010000101,
+      "over_30s": 4,
+      "estimated_cloud_cny": 0.08863920000000002
+    }
+  ],
+  "tuned_returned_usage_cost_cny": 0.37075320000000006,
+  "cost_note": "Estimates use returned usage only. Timed-out requests may have unreported billable usage.",
+  "controller_runs": [
+    {
+      "task": "math",
+      "completed": true,
+      "run": "math_tierlab_s0_1794648805616016700",
+      "policy": "tierlab",
+      "seed": 0,
+      "config_hash": "7c93879b08",
+      "total_steps": 4,
+      "final_score": 0.74,
+      "total_cloud_cny": 0.076832,
+      "total_gpu_s": 0.0,
+      "total_gpu_cny": 0.0,
+      "total_wall_s": 141.66,
+      "total_gpu_lease_cny": 0.0,
+      "total_verify_s": 0.126,
+      "total_cloud_tokens": 9409,
+      "ba_auc": 0.74,
+      "consultations_by_rung": {
+        "hint": {
+          "count": 1,
+          "verified_improvements": 0,
+          "total_delta": 0.0,
+          "total_cost_cny": 0.030367,
+          "roi_delta_per_cny": 0.0
+        },
+        "solve": {
+          "count": 0,
+          "verified_improvements": 0,
+          "total_delta": 0,
+          "total_cost_cny": 0,
+          "roi_delta_per_cny": 0.0
+        },
+        "diagnose": {
+          "count": 0,
+          "verified_improvements": 0,
+          "total_delta": 0,
+          "total_cost_cny": 0,
+          "roi_delta_per_cny": 0.0
+        },
+        "replan": {
+          "count": 0,
+          "verified_improvements": 0,
+          "total_delta": 0,
+          "total_cost_cny": 0,
+          "roi_delta_per_cny": 0.0
+        }
+      },
+      "lesson_hits": 0,
+      "duplicates_skipped": 0,
+      "cloud_calls": 3,
+      "local_calls": 0,
+      "stop_reason": "max_steps_reached",
+      "weak_model_calls": 2,
+      "strong_model_calls": 1,
+      "controller_iterations": 2
+    },
+    {
+      "task": "code",
+      "completed": true,
+      "run": "code_tierlab_s0_1794648947440271400",
+      "policy": "tierlab",
+      "seed": 0,
+      "config_hash": "7c93879b08",
+      "total_steps": 4,
+      "final_score": 0.8807,
+      "total_cloud_cny": 0.035369,
+      "total_gpu_s": 0.0,
+      "total_gpu_cny": 0.0,
+      "total_wall_s": 58.7,
+      "total_gpu_lease_cny": 0.0,
+      "total_verify_s": 1.934,
+      "total_cloud_tokens": 6511,
+      "ba_auc": 0.8531,
+      "consultations_by_rung": {
+        "hint": {
+          "count": 1,
+          "verified_improvements": 0,
+          "total_delta": 0.0,
+          "total_cost_cny": 0.015731,
+          "roi_delta_per_cny": 0.0
+        },
+        "solve": {
+          "count": 1,
+          "verified_improvements": 0,
+          "total_delta": 0.0,
+          "total_cost_cny": 0.019638,
+          "roi_delta_per_cny": 0.0
+        },
+        "diagnose": {
+          "count": 0,
+          "verified_improvements": 0,
+          "total_delta": 0,
+          "total_cost_cny": 0,
+          "roi_delta_per_cny": 0.0
+        },
+        "replan": {
+          "count": 0,
+          "verified_improvements": 0,
+          "total_delta": 0,
+          "total_cost_cny": 0,
+          "roi_delta_per_cny": 0.0
+        }
+      },
+      "lesson_hits": 0,
+      "duplicates_skipped": 0,
+      "cloud_calls": 4,
+      "local_calls": 0,
+      "stop_reason": "max_steps_reached",
+      "weak_model_calls": 2,
+      "strong_model_calls": 2,
+      "controller_iterations": 2
+    }
+  ],
+  "client_environment": "Windows Python 3.11; verification on local CPU, provider generation via HTTPS API",
+  "latest_batch_and_controller_returned_usage_cost_cny": 0.48295420000000006
+}

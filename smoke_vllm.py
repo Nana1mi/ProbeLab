@@ -22,9 +22,11 @@ from openai import AsyncOpenAI
 from tierlab.sandbox import clear_sandbox_cache
 from tierlab.tasks import get_task
 from tierlab.types import Candidate
+from tierlab.prompts import json_code_request
 
 SAMPLES = Path(__file__).resolve().parent / "docs/prompt_samples"
 OUTPUTS = Path("smoke_outputs")
+PRICING = None
 
 
 def save_json(name, value):
@@ -59,19 +61,30 @@ async def one_call(client, model, messages, max_tokens, temperature, extra_body)
         "finish": c.finish_reason,
         "out_tokens": r.usage.completion_tokens if r.usage else 0,
         "in_tokens": r.usage.prompt_tokens if r.usage else 0,
+        "reasoning_tokens": getattr(getattr(r.usage, "completion_tokens_details", None), "reasoning_tokens", 0) or 0,
         "latency_s": dt,
     }
 
 
-async def format_check(client, model, task_name, n):
+async def format_check(client, model, task_name, n, provider="vllm", max_tokens=None, concurrency=None, json_code=False):
     sample = json.loads((SAMPLES / f"{task_name}_local.json").read_text(encoding="utf-8"))
     task = get_task(task_name)
-    extra = sample.get("extra_body") or {"chat_template_kwargs": {"enable_thinking": False}}
-    res = await asyncio.gather(*[
-        one_call(client, model, sample["messages"], sample.get("max_tokens", 2048),
-                 0.6 + 0.1 * (i % 4), extra)
-        for i in range(n)
-    ])
+    extra = ({"enable_thinking": False} if provider == "siliconflow" else
+             sample.get("extra_body") or {"chat_template_kwargs": {"enable_thinking": False}})
+    messages = sample['messages']
+    if json_code and task_name in ('math', 'code'):
+        messages, extra = json_code_request(messages, extra)
+    token_limit = max_tokens if max_tokens is not None else sample.get('max_tokens', 2048)
+    limit = concurrency or n
+    semaphore = asyncio.Semaphore(limit)
+    save_json(f'{task_name}_request.json', {'provider': provider, 'model': model,
+              'messages': messages, 'max_tokens': token_limit,
+              'extra_body': extra, 'concurrency': limit,
+              'temperatures': [.6 + .1 * (i % 4) for i in range(n)]})
+    async def generate(i):
+        async with semaphore:
+            return await one_call(client, model, messages, token_limit, .6 + .1 * (i % 4), extra)
+    res = await asyncio.gather(*[generate(i) for i in range(n)])
     # Save raw responses before verification, so a verifier interruption loses no generations.
     save_json(f"{task_name}.json", res)
     stats = {"valid": 0, "think_leak": 0, "truncated": 0, "empty": 0, "api_errors": 0, "sigs": {}, "scores": []}
@@ -115,31 +128,43 @@ async def format_check(client, model, task_name, n):
     if stats["scores"]:
         print(f"   valid scores: min={min(stats['scores']):.4f} max={max(stats['scores']):.4f}")
     print(f"   out tokens median={statistics.median(toks):.0f}  latency median={statistics.median(lat):.1f}s "
-          f"(concurrency {n})")
+          f"(concurrency {limit})")
     stats.update(latency_stats(res))
     stats.update({"n": n, "valid_rate": stats["valid"] / n})
+    stats.update({"provider": provider, "model": model, "max_tokens": token_limit, "concurrency": limit,
+                  "candidate_format": 'json_code' if json_code and task_name in ('math', 'code') else 'raw',
+                  "input_tokens": sum(r['in_tokens'] for r in res),
+                  "output_tokens": sum(r['out_tokens'] for r in res),
+                  "reasoning_tokens": sum(r.get('reasoning_tokens', 0) for r in res)})
+    if PRICING:
+        stats['estimated_cloud_cny'] = (stats['input_tokens'] * PRICING[0] + stats['output_tokens'] * PRICING[1]) / 1_000_000
     print(f"   latency p95={stats['p95_s']:.1f}s max={stats['max_s']:.1f}s over_30s={stats['over_30s']} api_errors={stats['api_errors']}")
     save_json(f"{task_name}_summary.json", stats)
     return stats
 
 
-async def throughput(client, model):
+async def throughput(client, model, provider="vllm"):
     msgs = [{"role": "user", "content": "Write a long, detailed Python tutorial about numpy broadcasting."}]
-    extra = {"chat_template_kwargs": {"enable_thinking": False}}
-    print("\n[throughput] fixed 2048-token generations (ignore_eos)")
+    extra = ({"enable_thinking": False} if provider == "siliconflow" else
+             {"chat_template_kwargs": {"enable_thinking": False}, "ignore_eos": True})
+    print(f"\n[throughput] provider={provider}; " +
+          ("API generations capped at 2048 tokens" if provider == "siliconflow" else "fixed 2048-token generations (ignore_eos)"))
     measurements = []
     for k in (1, 2, 4):
         t0 = time.perf_counter()
         res = await asyncio.gather(*[
-            one_call(client, model, msgs, 2048, 0.7, {**extra, "ignore_eos": True}) for _ in range(k)
+            one_call(client, model, msgs, 2048, 0.7, extra) for _ in range(k)
         ])
         wall = time.perf_counter() - t0
         tot = sum(r["out_tokens"] for r in res)
         per = statistics.median(r["out_tokens"] / r["latency_s"] for r in res)
         print(f"   K={k}: wall={wall:.1f}s  total={tot/wall:.0f} tok/s  per-request={per:.0f} tok/s")
-        measurement = {"k": k, "wall_s": wall, "total_tokens": tot, "total_tokens_per_s": tot / wall,
+        measurement = {"provider": provider, "model": model, "fixed_output_length": provider == 'vllm',
+                       "k": k, "wall_s": wall, "total_tokens": tot, "total_tokens_per_s": tot / wall,
                        "api_errors": sum(bool(r.get('error_type')) for r in res),
                        **latency_stats(res), "responses": res}
+        if PRICING:
+            measurement['estimated_cloud_cny'] = (sum(r['in_tokens'] for r in res) * PRICING[0] + tot * PRICING[1]) / 1_000_000
         print(f"        latency median={measurement['median_s']:.1f}s p95={measurement['p95_s']:.1f}s max={measurement['max_s']:.1f}s")
         measurements.append(measurement)
         save_json("throughput.json", measurements)
@@ -147,28 +172,52 @@ async def throughput(client, model):
 
 
 async def main():
-    global OUTPUTS
+    global OUTPUTS, PRICING
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base-url", default="http://127.0.0.1:8000/v1")
+    ap.add_argument("--provider", choices=("vllm", "siliconflow"), default="vllm")
+    ap.add_argument("--base-url", default=None)
     ap.add_argument("--model", default="local-vllm-model")
-    ap.add_argument("--api-key", default=os.environ.get("LOCAL_API_KEY", "EMPTY"))
+    ap.add_argument("--api-key", default=None)
     ap.add_argument("--n", type=int, default=8)
+    ap.add_argument('--concurrency', type=int, default=None, help='Generation concurrency (SiliconFlow default 2)')
+    ap.add_argument('--json-code', action='store_true', help='Request a JSON code envelope for math/code candidates')
     ap.add_argument("--tasks", default="math,code,paper")
     ap.add_argument("--skip-throughput", action="store_true")
     ap.add_argument("--output-dir", type=Path, default=Path("smoke_outputs"))
     ap.add_argument("--timeout", type=float, default=300.0, help="Request timeout; SDK retries are disabled")
+    ap.add_argument("--max-tokens", type=int, default=None, help="Override task output cap; throughput stays capped at 2048")
+    ap.add_argument("--prompt-cny-per-m", type=float, default=None)
+    ap.add_argument("--completion-cny-per-m", type=float, default=None)
     a = ap.parse_args()
     if a.n < 1:
         ap.error("--n must be positive")
+    if a.max_tokens is not None and a.max_tokens < 1:
+        ap.error('--max-tokens must be positive')
+    if a.concurrency is not None and a.concurrency < 1:
+        ap.error('--concurrency must be positive')
     tasks = [t.strip() for t in a.tasks.split(",") if t.strip()]
     if not tasks or any(t not in ("math", "code", "paper") for t in tasks):
         ap.error("--tasks must contain math, code and/or paper")
     OUTPUTS = a.output_dir
-    async with AsyncOpenAI(base_url=a.base_url, api_key=a.api_key, timeout=a.timeout, max_retries=0) as client:
+    concurrency = a.concurrency or (2 if a.provider == 'siliconflow' else a.n)
+    base_url = a.base_url or ('https://api.siliconflow.cn/v1' if a.provider == 'siliconflow' else 'http://127.0.0.1:8000/v1')
+    api_key = a.api_key or os.environ.get('SILICONFLOW_API_KEY' if a.provider == 'siliconflow' else 'LOCAL_API_KEY', 'EMPTY')
+    if a.provider == 'siliconflow' and api_key == 'EMPTY':
+        ap.error('Set SILICONFLOW_API_KEY for the cloud API')
+    if (a.prompt_cny_per_m is None) != (a.completion_cny_per_m is None):
+        ap.error('Specify both input and output prices, or neither')
+    PRICING = (a.prompt_cny_per_m, a.completion_cny_per_m) if a.prompt_cny_per_m is not None else None
+    save_json('run_metadata.json', {'provider': a.provider, 'model': a.model, 'tasks': tasks,
+                                  'n': a.n, 'concurrency': concurrency, 'base_url': base_url,
+                                  'max_tokens_override': a.max_tokens, 'pricing_cny_per_m': PRICING,
+                                  'json_code': a.json_code,
+                                  'local_gpu_benchmark': a.provider == 'vllm'})
+    async with AsyncOpenAI(base_url=base_url, api_key=api_key, timeout=a.timeout, max_retries=0) as client:
         for t in tasks:
-            await format_check(client, a.model, t, a.n)
+            await format_check(client, a.model, t, a.n, provider=a.provider, max_tokens=a.max_tokens,
+                               concurrency=concurrency, json_code=a.json_code)
         if not a.skip_throughput:
-            await throughput(client, a.model)
+            await throughput(client, a.model, provider=a.provider)
     print(f"\nOutputs: {OUTPUTS.resolve()}")
 
 

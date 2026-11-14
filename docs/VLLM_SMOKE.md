@@ -1,6 +1,23 @@
 # 4090D vLLM smoke test
 
-## Confirmed hardware and current status
+## Latest status
+
+The replacement server was verified with RTX 4090 (24564 MiB), driver
+580.126.09 / reported CUDA 13.0, a 30 GiB system overlay and a 49 GiB data
+volume at `/root/gpufree-data`. It successfully installed Python 3.11.18,
+vLLM 0.26.0 and PyTorch 2.11.0+cu130. A GPU matrix multiplication passed,
+and the deployed pre-API-fallback checkout passed all 101 tests on that server.
+
+Its runtime is `/root/gpufree-data/probelab-runtime/`, with the model environment
+at `/root/probelab-venv/`. Weight download was paused after only about 315 MiB
+of a 22,010,673,752-byte weight file arrived over a slow connection. No local
+model inference or local throughput benchmark has completed. Work switched to
+the [SiliconFlow API smoke route](SILICONFLOW_SMOKE.md), which now has real results.
+
+For this newer driver the default vLLM 0.26.0 CUDA 13 package passed the GPU
+preflight. The older-driver notes below describe the previous server attempt.
+
+## Previous server attempt
 
 2026-11-14: SSH inventory confirmed RTX 4090 D, 24564 MiB VRAM,
 driver 550.90.07 (reported CUDA 12.4), 58 GiB RAM, and about 84 GiB free

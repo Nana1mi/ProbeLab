@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 from typing import Any
 
-from tierlab.config import load_batch_config, load_run_config
+from tierlab.config import load_batch_config, load_run_config, load_models_config
 from tierlab.controller import ResearchController
 from tierlab.gateway import ModelGateway
 from tierlab.ledger import DecisionLedger
@@ -57,6 +57,7 @@ def build_parser() -> argparse.ArgumentParser:
     run_p.add_argument("--local-patience", type=int, default=None, help="Stagnant rounds before consultation (#6, #12)")
     run_p.add_argument("--output-dir", type=str, default="runs", help="Output directory for ledgers")
     run_p.add_argument("--config", type=str, default=None, help="Path to custom run config yaml (#6)")
+    run_p.add_argument('--models-config', default=None, help='Endpoint and price configuration YAML')
 
     run_p.add_argument('--dump-prompts', nargs='?', const=True, default=False,
                        help='Dump exact model requests as JSON (optional destination directory)')
@@ -102,6 +103,7 @@ def run_experiment(
     local_max_tokens: int | None = None,
     hint_max_tokens: int | None = None,
     max_feedback_chars: int | None = None,
+    models_config_file: str | Path | None = None,
 ) -> dict:
     """Synchronous wrapper to execute a single run with full configuration support (#6)."""
     raw_conf = load_run_config(config_file)
@@ -125,7 +127,9 @@ def run_experiment(
     task_options = dict(raw_conf.get('task_options', {}).get(task_name, {}))
     task_instance = get_task(task_name, budget=budget, **task_options)
     dump_dir = (run_folder / 'prompts' if dump_prompts is True else Path(dump_prompts)) if dump_prompts else None
-    gateway = ModelGateway(budget=budget, backend=backend, weak_target=controller_conf.weak_backend,
+    models_path = models_config_file or raw_conf.get('models_config')
+    gateway = ModelGateway(models_config=load_models_config(models_path) if models_path else None,
+                           budget=budget, backend=backend, weak_target=controller_conf.weak_backend,
                            prompt_dump_dir=dump_dir)
     lessons = LessonStore(run_folder / 'lessons.json')
 
@@ -171,6 +175,7 @@ def main(argv: list[str] | None = None) -> int:
             local_max_tokens=args.local_max_tokens,
             hint_max_tokens=args.hint_max_tokens,
             max_feedback_chars=args.max_feedback_chars,
+            models_config_file=args.models_config,
         )
         print("\n=== RUN COMPLETED ===")
         print(f"Run ID:            {summary['run']}")

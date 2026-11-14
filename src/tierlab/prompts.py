@@ -12,6 +12,18 @@ from __future__ import annotations
 
 from tierlab.types import ConsultationRung
 
+JSON_CODE_INSTRUCTION = (
+    'Return exactly one JSON object with one string field "code". '
+    'The code must implement the complete Python candidate required above. '
+    'No explanations, proofs, commentary or markdown. Put the Python implementation directly in "code".'
+)
+
+
+def json_code_request(messages: list[dict[str, str]], extra_body: dict | None = None) -> tuple[list, dict]:
+    """Constrain transport format without changing the task or verification contract."""
+    return ([dict(m) for m in messages] + [{'role': 'user', 'content': JSON_CODE_INSTRUCTION}],
+            {**(extra_body or {}), 'response_format': {'type': 'json_object'}})
+
 RUNG_MAX_TOKENS = {
     ConsultationRung.HINT: 400,
     ConsultationRung.SOLVE: 2048,

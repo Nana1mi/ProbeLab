@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any
+from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -70,6 +70,7 @@ class ModelEndpointConfig(BaseModel):
     supports_guided_decoding: bool = False
     extra_body: dict[str, Any] = Field(default_factory=dict)
     max_tokens: int = Field(default=2048, gt=0)
+    candidate_format: Literal['raw', 'json_code'] = 'raw'
     timeout_s: float = 60.0
     max_retries: int = 3
 

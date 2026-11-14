@@ -2,6 +2,25 @@
 
 from pathlib import Path
 from tierlab.cli import main
+import json
+import pytest
+
+
+@pytest.mark.parametrize('use_explicit_flag', [True, False])
+def test_cloud_weak_config_routes_and_bills_as_cloud(tmp_path, use_explicit_flag):
+    output = tmp_path / 'api_runs'
+    args = ['run', '--task', 'paper', '--backend', 'mock', '--max-steps', '1',
+            '--weak-backend', 'cloud_small', '--output-dir', str(output)]
+    if use_explicit_flag:
+        args += ['--models-config', 'configs/models.siliconflow.yaml']
+    else:
+        args += ['--config', 'configs/api_smoke.yaml']
+    assert main(args) == 0
+    summary = json.loads(next(output.rglob('summary.json')).read_text(encoding='utf-8'))
+    assert summary['cloud_calls'] > 0
+    assert summary['local_calls'] == 0
+    assert summary['total_cloud_cny'] > 0
+    assert summary['total_gpu_s'] == summary['total_gpu_cny'] == 0
 
 
 def test_cli_run_math(tmp_path: Path):

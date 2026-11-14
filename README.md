@@ -125,3 +125,15 @@ python smoke_vllm.py --model local-vllm-model --n 8
 脚本使用导出的真实 local 提示词，保存原始回复、逐级验证结果、失败签名、思考泄漏、
 截断次数，以及 K=1/2/4 的吞吐和 P95/最大延迟。输出默认在 `smoke_outputs/`，
 可用 `--output-dir` 指定。API 单次失败不会丢失同批其他回复。
+
+本地权重下载过慢时，可先使用硅基流动的同款基座 API 验证流程：
+
+```bash
+python smoke_vllm.py --provider siliconflow --model Qwen/Qwen3.6-35B-A3B \
+  --n 8 --concurrency 2 --json-code --max-tokens 4096 --skip-throughput
+tierlab run --task math --config configs/api_smoke.yaml --dump-prompts
+```
+
+先在环境变量中设置 `SILICONFLOW_API_KEY`。API 的费用、吞吐及精度不能作为本地
+AWQ 推理的测量结果。请求格式、已发现的问题和复现配置见
+[硅基流动冒烟说明](docs/SILICONFLOW_SMOKE.md)。

@@ -1,0 +1,17 @@
+# Small, cloud-only real run. Default mock/model templates stay unchanged.
+backend: real
+models_config: configs/models.siliconflow.yaml
+seed: 0
+controller:
+  weak_backend: cloud_small
+  k_schedule: [1, 2]
+  k_init: 1
+  local_patience: 2
+  stagnation_patience: 4
+  local_max_tokens: 4096
+  hint_max_tokens: 400
+  enable_lessons: false
+budget:
+  cloud_budget_cny: 1.0
+  max_steps: 4
+  max_wall_clock_s: 240.0

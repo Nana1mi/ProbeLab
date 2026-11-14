@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
@@ -116,7 +117,13 @@ class ResearchTask(ABC):
         # 2. Find fenced code blocks
         fences = list(re.finditer(r"```(?:[a-zA-Z0-9_\-]+)?\s*\n?(.*?)```", cleaned, flags=re.DOTALL))
         if fences:
-            return fences[-1].group(1).strip()
+            cleaned = fences[-1].group(1).strip()
+        try:
+            envelope = json.loads(cleaned)
+            if isinstance(envelope, dict) and isinstance(envelope.get('code'), str):
+                return envelope['code'].strip()
+        except (ValueError, TypeError):
+            pass
         return cleaned
 
     def run_ladder(

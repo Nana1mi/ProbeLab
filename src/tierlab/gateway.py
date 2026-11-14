@@ -26,6 +26,7 @@ from openai import AsyncOpenAI, APIConnectionError, RateLimitError, InternalServ
 from tierlab.config import load_models_config
 from tierlab.exceptions import BudgetExceededError, ConfigurationError
 from tierlab.mock_llm import MockLLMBackend
+from tierlab.prompts import json_code_request
 from tierlab.types import (
     Budget,
     ModelEndpointConfig,
@@ -102,11 +103,13 @@ class ModelGateway:
             base_url=self.config.cloud_model.base_url,
             api_key=cloud_key,
             timeout=self.config.cloud_model.timeout_s,
+            max_retries=0,  # The gateway's endpoint retry policy is the single owner.
         )
         self._local_client = AsyncOpenAI(
             base_url=self.config.local_model.base_url,
             api_key=local_key,
             timeout=self.config.local_model.timeout_s,
+            max_retries=0,
         )
         if self.config.cloud_small_model:
             small_key = os.environ.get(self.config.cloud_small_model.api_key_env, "placeholder_key")
@@ -114,6 +117,7 @@ class ModelGateway:
                 base_url=self.config.cloud_small_model.base_url,
                 api_key=small_key,
                 timeout=self.config.cloud_small_model.timeout_s,
+                max_retries=0,
             )
 
     def calculate_cost(
@@ -154,11 +158,14 @@ class ModelGateway:
         target: str,
         messages: list[dict[str, str]],
         max_tokens: int | None = None,
+        task_class: str | None = None,
     ) -> float:
         """Estimate worst-case cost for a call based on target and messages (#15)."""
         endpoint, resolved = self._resolve_endpoint(target)
         if resolved not in ("cloud", "cloud_small"):
             return 0.0
+        if endpoint.candidate_format == 'json_code' and task_class != 'paper':
+            messages, _ = json_code_request(messages)
         return self._estimate_worst_case_cost(endpoint.pricing, messages, max_tokens)
 
     def _estimate_worst_case_cost(
@@ -196,10 +203,13 @@ class ModelGateway:
         temperature: float = 0.7,
         extra_body: dict[str, Any] | None = None,
         task_class: str = "math",
+        response_kind: str = 'candidate',
     ) -> GatewayCallRecord:
         endpoint, resolved_target = self._resolve_endpoint(target)
         is_cloud_billing = resolved_target in ("cloud", "cloud_small")
         max_tokens = max_tokens if max_tokens is not None else endpoint.max_tokens
+        if endpoint.candidate_format == 'json_code' and response_kind == 'candidate' and task_class in ('math', 'code'):
+            messages, extra_body = json_code_request(messages, extra_body)
 
         # 1. HARD BUDGET CAP ENFORCEMENT
         if is_cloud_billing:

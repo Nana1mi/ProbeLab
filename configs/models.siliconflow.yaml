@@ -1,0 +1,43 @@
+# Verified 2026-11-14 against https://www.siliconflow.cn/pricing
+# Cloud-only experiment: both strong and weak calls are billed to cloud.
+# Prices below use the normal (non-discounted) period. Recheck before formal runs.
+cloud_model:
+  name: deepseek-ai/DeepSeek-V4.1-Flash
+  base_url: https://api.siliconflow.cn/v1
+  api_key_env: SILICONFLOW_API_KEY
+  pricing:
+    prompt_cny_per_m: 2.0
+    cached_cny_per_m: 0.04
+    completion_cny_per_m: 8.0
+  extra_body: {enable_thinking: false}
+  candidate_format: json_code
+  max_tokens: 2048
+  timeout_s: 120.0
+  max_retries: 1
+
+# Unused when controller.weak_backend=cloud_small; retained for the common schema.
+local_model:
+  name: local-vllm-model
+  base_url: http://127.0.0.1:8000/v1
+  api_key_env: LOCAL_API_KEY
+  pricing: {prompt_cny_per_m: 0.0, cached_cny_per_m: 0.0, completion_cny_per_m: 0.0}
+  extra_body: {chat_template_kwargs: {enable_thinking: false}}
+  timeout_s: 30.0
+  max_retries: 0
+
+cloud_small_model:
+  name: Qwen/Qwen3.6-35B-A3B
+  base_url: https://api.siliconflow.cn/v1
+  api_key_env: SILICONFLOW_API_KEY
+  pricing:
+    prompt_cny_per_m: 1.8
+    cached_cny_per_m: 1.8  # No cached-price discount is listed; charge all input normally.
+    completion_cny_per_m: 10.8
+  extra_body: {enable_thinking: false}
+  candidate_format: json_code
+  max_tokens: 4096
+  timeout_s: 120.0
+  max_retries: 1
+
+rho_gpu_cny_per_s: 0.0
+alpha_cny_per_min: 0.006

@@ -983,6 +983,7 @@ class ResearchController:
             target="cloud",
             messages=messages,
             max_tokens=500,
+            response_kind='advice',
             temperature=0.7,
             task_class=self.task.task_class,
         )
@@ -1086,7 +1087,8 @@ class ResearchController:
                 cloud_guidance=cloud_guidance,
                 temperature_angle="sample",
             )
-            worst_single = self.gateway.estimate_call_worst_case("cloud_small", sample_messages, self.config.local_max_tokens)
+            worst_single = self.gateway.estimate_call_worst_case("cloud_small", sample_messages, self.config.local_max_tokens,
+                                                               task_class=self.task.task_class)
             reserved_amount = worst_single * k
             # Raises BudgetExceededError before creating coroutines if budget is insufficient (#15)
             self.gateway.reserve_budget(reserved_amount)
@@ -1259,6 +1261,7 @@ class ResearchController:
             max_tokens=max_tokens,
             temperature=0.7,
             task_class=self.task.task_class,
+            response_kind='candidate' if rung == ConsultationRung.SOLVE else 'advice',
         )
         return rec
 
