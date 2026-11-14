@@ -1,0 +1,22 @@
+{
+  "task": "code",
+  "kind": "hint",
+  "target": "cloud",
+  "backend": "mock",
+  "model": "cloud-flagship-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Provide a brief strategic hint or direction. Do not write full code or detailed implementations."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 1\nSTAGNANT_STEPS: 1\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 0.1000 (Speedup: 1.00x)\nLAST_FAILURE_SIGNATURE: code/insufficient_speedup\nDEV_FEEDBACK: Repeated a previously seen candidate; no improvement. Speedup 1.00x is within noise threshold (1.08x)\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\n\"\"\"Slow reference implementation of batch cosine similarity top-k.\"\"\"\nimport math\n\ndef dot_product(v1, v2):\n    s = 0.0\n    for a, b in zip(v1, v2):\n        s += a * b\n    return s\n\ndef vector_norm(v):\n    s = 0.0\n    for a in v:\n        s += a * a\n    return math.sqrt(s)\n\ndef topk_cosine_sim(A, Q, k):\n    results = []\n    for q in Q:\n        q_norm = vector_norm(q)\n        sims = []\n        for i, a in enumerate(A):\n            a_norm = vector_norm(a)\n            denom = q_norm * a_norm\n            sim = dot_product(q, a) / (denom + 1e-12)\n            sims.append((sim, i))\n        for step in\n### PREVIOUS ATTEMPT FEEDBACK\nSignature: code/insufficient_speedup\nRepeated a previously seen candidate; no improvement. Speedup 1.00x is within noise threshold (1.08x)\n### HINT CONTEXT (STATE & CANDIDATE)\nCURRENT BEST CANDIDATE (TRUNCATED):\n\"\"\"Slow reference implementation of batch cosine similarity top-k.\"\"\"\nimport math\n\ndef dot_product(v1, v2):\n    s = 0.0\n    for a, b in zip(v1, v2):\n        s += a * b\n    return s\n\ndef vector_norm(v):\n    s = 0.0\n    for a in v:\n        s += a * a\n    return math.sqrt(s)\n\ndef topk_cosine_sim(A, Q, k):\n    results = []\n    for q in Q:\n        q_norm = vector_norm(q)\n        sims = []\n        for i...\n\n### INSTRUCTION\nThe local solver is stalled. Provide a concise strategic hint or direction for the next iteration."
+    }
+  ],
+  "max_tokens": 400,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

@@ -38,6 +38,12 @@ class RunRequest(BaseModel):
     enable_lessons: bool = False
     weak_backend: str = "local"
     local_patience: int = 2
+    local_max_tokens: int = Field(default=2048, gt=0)
+    hint_max_tokens: int = Field(default=400, gt=0)
+    max_feedback_chars: int = Field(default=2400, ge=256)
+    code_allowed_libraries: list[str] = Field(default_factory=lambda: ['stdlib', 'numpy'])
+    code_max_speedup: float = Field(default=50.0, gt=1)
+    timing_tolerance_s: float = Field(default=2.0, gt=0)
 
 
 async def _execute_task_worker(run_id: str, req: RunRequest) -> None:
@@ -52,7 +58,10 @@ async def _execute_task_worker(run_id: str, req: RunRequest) -> None:
             max_wall_clock_s=req.max_wall_clock_s,
             max_steps=req.max_steps,
         )
-        task_instance = get_task(req.task, budget=budget)
+        task_options = (dict(allowed_libraries=req.code_allowed_libraries, max_speedup=req.code_max_speedup,
+                             timing_tolerance_s=req.timing_tolerance_s)
+                        if req.task in ('code', 'code_opt', 'cosine') else {})
+        task_instance = get_task(req.task, budget=budget, **task_options)
         gateway = ModelGateway(budget=budget, backend=req.backend, weak_target=req.weak_backend)
         lessons = LessonStore(run_folder / "lessons.json")
         controller_conf = ControllerConfig(
@@ -61,6 +70,9 @@ async def _execute_task_worker(run_id: str, req: RunRequest) -> None:
             weak_backend=req.weak_backend,
             local_patience=req.local_patience,
             backend=req.backend,
+            local_max_tokens=req.local_max_tokens,
+            hint_max_tokens=req.hint_max_tokens,
+            max_feedback_chars=req.max_feedback_chars,
         )
 
         controller = ResearchController(

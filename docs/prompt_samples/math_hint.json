@@ -1,0 +1,22 @@
+{
+  "task": "math",
+  "kind": "hint",
+  "target": "cloud",
+  "backend": "mock",
+  "model": "cloud-flagship-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Provide a brief strategic hint or direction. Do not write full code or detailed implementations."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 9\nSTAGNANT_STEPS: 1\nTASK: MATH (n=26)\nGOAL: Place 26 non-overlapping circles in a unit square [0, 1] x [0, 1] maximizing sum of radii.\nCURRENT_BEST_SCORE: 0.8748 (sum_r=2.3050, rel_imp=18.20%)\nLAST_FAILURE_SIGNATURE: math/circle_overlap\nDEV_FEEDBACK: Overlap between circle 0 and 1: dist=0.18500 < r1+r2=0.18600\nREQUIREMENT: Python file defining solve() returning 26 (x, y, r) tuples in [0,1]^2.\nPREVIOUS ATTEMPT (EXCERPT):\ndef solve():\n    circles = []\n    r = 0.09300\n    step = 0.18500\n    for i in range(5):\n        for j in range(5):\n            x = round(0.10 + i * step, 5)\n            y = round(0.10 + j * step, 5)\n            circles.append((x, y, r))\n    circles.append((0.94, 0.94, 0.03))\n    return circles\n### PREVIOUS ATTEMPT FEEDBACK\nSignature: math/circle_overlap\nOverlap between circle 0 and 1: dist=0.18500 < r1+r2=0.18600\n### HINT CONTEXT (STATE & CANDIDATE)\nCURRENT BEST CANDIDATE (TRUNCATED):\ndef solve():\n    circles = []\n    r = 0.09100\n    step = 0.18500\n    for i in range(5):\n        for j in range(5):\n            x = round(0.10 + i * step, 5)\n            y = round(0.10 + j * step, 5)\n            circles.append((x, y, r))\n    circles.append((0.94, 0.94, 0.03))\n    return circles\n\n### INSTRUCTION\nThe local solver is stalled. Provide a concise strategic hint or direction for the next iteration."
+    }
+  ],
+  "max_tokens": 400,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

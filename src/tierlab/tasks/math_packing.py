@@ -338,7 +338,7 @@ class MathPackingTask(ResearchTask):
         last_sig = "none"
         last_msg = "none"
         if recent_results:
-            failed = [r for r in recent_results if not r.valid]
+            failed = [r for r in recent_results if not r.valid or r.failure_signature]
             if failed:
                 last_sig = failed[-1].failure_signature or "unknown"
                 last_msg = failed[-1].feedback
@@ -396,13 +396,14 @@ def solve():
         self,
         current_best: Candidate | None = None,
         rung: str | None = None,
+        recent_results: list[VerificationResult] | None = None,
     ) -> str:
         best_code = current_best.content if current_best else self.initial_candidate().content
         if rung == "hint":
             # For hint: return state card and truncated current candidate (#1)
-            card = self.state_card(current_best, [])
             truncated_cand = best_code[:400] + ("..." if len(best_code) > 400 else "")
-            return f"STATE CARD:\n{card}\n\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
+            card = self.state_card(current_best, recent_results or [])
+            return f"STATE CARD:\n{card}\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
 
         return (
             f"TASK SPECIFICATION:\n"

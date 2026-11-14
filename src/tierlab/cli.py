@@ -45,18 +45,24 @@ def build_parser() -> argparse.ArgumentParser:
         choices=["tierlab", "all_cloud", "all_local", "cascade", "static_split", "no_advice_retry"],
         help="Coordination policy",
     )
-    run_p.add_argument("--backend", type=str, default="mock", choices=["mock", "real"], help="LLM backend")
-    run_p.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility")
-    run_p.add_argument("--cloud-budget", type=float, default=5.0, help="Hard cloud budget in CNY")
-    run_p.add_argument("--max-steps", type=int, default=15, help="Maximum iteration steps")
-    run_p.add_argument("--max-time", type=float, default=300.0, help="Max wall-clock seconds")
-    run_p.add_argument("--k-init", type=int, default=1, help="Initial parallel width K (#6)")
-    run_p.add_argument("--no-widen", action="store_true", help="Ablation: disable K widening")
-    run_p.add_argument("--enable-lessons", action="store_true", help="Enable lesson library (#6)")
-    run_p.add_argument("--weak-backend", type=str, default="local", choices=["local", "cloud_small"], help="Weak backend (#6, #8)")
-    run_p.add_argument("--local-patience", type=int, default=2, help="Stagnant rounds before consultation (#6, #12)")
+    run_p.add_argument("--backend", type=str, default=None, choices=["mock", "real"], help="LLM backend")
+    run_p.add_argument("--seed", type=int, default=None, help="Random seed for reproducibility")
+    run_p.add_argument("--cloud-budget", type=float, default=None, help="Hard cloud budget in CNY")
+    run_p.add_argument("--max-steps", type=int, default=None, help="Maximum iteration steps")
+    run_p.add_argument("--max-time", type=float, default=None, help="Max wall-clock seconds")
+    run_p.add_argument("--k-init", type=int, default=None, help="Initial parallel width K (#6)")
+    run_p.add_argument("--no-widen", action="store_true", default=None, help="Ablation: disable K widening")
+    run_p.add_argument("--enable-lessons", action="store_true", default=None, help="Enable lesson library (#6)")
+    run_p.add_argument("--weak-backend", type=str, default=None, choices=["local", "cloud_small"], help="Weak backend (#6, #8)")
+    run_p.add_argument("--local-patience", type=int, default=None, help="Stagnant rounds before consultation (#6, #12)")
     run_p.add_argument("--output-dir", type=str, default="runs", help="Output directory for ledgers")
     run_p.add_argument("--config", type=str, default=None, help="Path to custom run config yaml (#6)")
+
+    run_p.add_argument('--dump-prompts', nargs='?', const=True, default=False,
+                       help='Dump exact model requests as JSON (optional destination directory)')
+    run_p.add_argument('--local-max-tokens', type=int, default=None)
+    run_p.add_argument('--hint-max-tokens', type=int, default=None)
+    run_p.add_argument('--max-feedback-chars', type=int, default=None)
 
     # 2. batch command
     batch_p = subparsers.add_parser("batch", help="Run a matrix of experiments from YAML")
@@ -79,63 +85,49 @@ def build_parser() -> argparse.ArgumentParser:
 def run_experiment(
     task_name: str,
     policy_name: str,
-    backend: str = "mock",
-    seed: int = 0,
-    cloud_budget: float = 5.0,
-    max_steps: int = 15,
-    max_time: float = 300.0,
-    k_init: int = 1,
-    no_widen: bool = False,
-    enable_lessons: bool = False,
-    weak_backend: str = "local",
-    local_patience: int = 2,
+    backend: str | None = None,
+    seed: int | None = None,
+    cloud_budget: float | None = None,
+    max_steps: int | None = None,
+    max_time: float | None = None,
+    k_init: int | None = None,
+    no_widen: bool | None = None,
+    enable_lessons: bool | None = None,
+    weak_backend: str | None = None,
+    local_patience: int | None = None,
     output_dir: str | Path = "runs",
     run_id: str | None = None,
     config_file: str | Path | None = None,
+    dump_prompts: bool | str | Path = False,
+    local_max_tokens: int | None = None,
+    hint_max_tokens: int | None = None,
+    max_feedback_chars: int | None = None,
 ) -> dict:
     """Synchronous wrapper to execute a single run with full configuration support (#6)."""
-    # Load config file if specified
-    raw_conf: dict[str, Any] = {}
-    if config_file:
-        raw_conf = load_run_config(config_file)
-
-    # Allow config file values to serve as defaults, overridden by explicit CLI parameters
-    c_ctrl = raw_conf.get("controller", {})
-    c_budget = raw_conf.get("budget", {})
-
-    final_k_init = k_init if k_init != 1 else c_ctrl.get("k_init", k_init)
-    final_no_widen = no_widen if no_widen else c_ctrl.get("no_widen", False)
-    final_enable_lessons = enable_lessons if enable_lessons else c_ctrl.get("enable_lessons", False)
-    final_weak_backend = weak_backend if weak_backend != "local" else c_ctrl.get("weak_backend", weak_backend)
-    final_local_patience = local_patience if local_patience != 2 else c_ctrl.get("local_patience", local_patience)
-
-    final_cloud_budget = cloud_budget if cloud_budget != 5.0 else c_budget.get("cloud_budget_cny", cloud_budget)
-    final_max_time = max_time if max_time != 300.0 else c_budget.get("max_wall_clock_s", max_time)
-    final_max_steps = max_steps if max_steps != 15 else c_budget.get("max_steps", max_steps)
-
-    run_id = run_id or f"{task_name}_{policy_name}_s{seed}_{int(time.time())}"
+    raw_conf = load_run_config(config_file)
+    c_ctrl = dict(raw_conf.get('controller', {}))
+    c_budget = dict(raw_conf.get('budget', {}))
+    backend = backend if backend is not None else raw_conf.get('backend', 'mock')
+    seed = seed if seed is not None else raw_conf.get('seed', 0)
+    overrides = dict(k_init=k_init, no_widen=no_widen, enable_lessons=enable_lessons,
+                     weak_backend=weak_backend, local_patience=local_patience,
+                     local_max_tokens=local_max_tokens, hint_max_tokens=hint_max_tokens,
+                     max_feedback_chars=max_feedback_chars, backend=backend)
+    c_ctrl.update({k: v for k, v in overrides.items() if v is not None})
+    controller_conf = ControllerConfig(**c_ctrl)
+    c_budget.update({k: v for k, v in dict(cloud_budget_cny=cloud_budget,
+                    max_wall_clock_s=max_time, max_steps=max_steps).items() if v is not None})
+    budget = Budget(**c_budget)
+    run_id = run_id or f"{task_name}_{policy_name}_s{seed}_{time.time_ns()}"
     run_folder = Path(output_dir) / run_id
     run_folder.mkdir(parents=True, exist_ok=True)
-
-    ledger_path = run_folder / "ledger.jsonl"
-    ledger = DecisionLedger(ledger_path)
-    budget = Budget(
-        cloud_budget_cny=final_cloud_budget,
-        max_wall_clock_s=final_max_time,
-        max_steps=final_max_steps,
-    )
-    task_instance = get_task(task_name, budget=budget)
-    gateway = ModelGateway(budget=budget, backend=backend, weak_target=final_weak_backend)
-    lessons = LessonStore(run_folder / "lessons.json")
-
-    controller_conf = ControllerConfig(
-        k_init=final_k_init,
-        no_widen=final_no_widen,
-        enable_lessons=final_enable_lessons,
-        weak_backend=final_weak_backend,
-        local_patience=final_local_patience,
-        backend=backend,
-    )
+    ledger = DecisionLedger(run_folder / 'ledger.jsonl')
+    task_options = dict(raw_conf.get('task_options', {}).get(task_name, {}))
+    task_instance = get_task(task_name, budget=budget, **task_options)
+    dump_dir = (run_folder / 'prompts' if dump_prompts is True else Path(dump_prompts)) if dump_prompts else None
+    gateway = ModelGateway(budget=budget, backend=backend, weak_target=controller_conf.weak_backend,
+                           prompt_dump_dir=dump_dir)
+    lessons = LessonStore(run_folder / 'lessons.json')
 
     controller = ResearchController(
         task=task_instance,
@@ -150,6 +142,7 @@ def run_experiment(
     )
 
     summary = asyncio.run(controller.run())
+    (run_folder / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     return summary
 
 
@@ -174,6 +167,10 @@ def main(argv: list[str] | None = None) -> int:
             local_patience=args.local_patience,
             output_dir=args.output_dir,
             config_file=args.config,
+            dump_prompts=args.dump_prompts,
+            local_max_tokens=args.local_max_tokens,
+            hint_max_tokens=args.hint_max_tokens,
+            max_feedback_chars=args.max_feedback_chars,
         )
         print("\n=== RUN COMPLETED ===")
         print(f"Run ID:            {summary['run']}")
@@ -181,6 +178,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Cloud Spend:       ¥{summary['total_cloud_cny']:.5f}")
         print(f"Total Steps:       {summary['total_steps']}")
         print(f"Wall Clock Time:   {summary['total_wall_s']:.2f}s")
+        print(f"Cloud / local calls: {summary['cloud_calls']} / {summary['local_calls']}")
+        print(f"Stop reason:       {summary['stop_reason']}")
         print(f"BA-AUC:            {summary['ba_auc']:.4f}")
         print(f"Lesson Hits:       {summary['lesson_hits']}")
         return 0
@@ -228,6 +227,7 @@ def main(argv: list[str] | None = None) -> int:
                         local_patience=local_patience,
                         output_dir=args.output_dir,
                         run_id=run_id,
+                        config_file=args.config_file,
                     )
                     results.append(summary)
                     print(f" done! Score: {summary['final_score']}, Cloud: ¥{summary['total_cloud_cny']:.4f}")

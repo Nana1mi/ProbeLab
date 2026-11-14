@@ -11,6 +11,9 @@ controller:
   local_patience: 2
   stagnation_patience: 4
   max_format_failures: 2
+  local_max_tokens: 2048
+  hint_max_tokens: 400
+  max_feedback_chars: 2400
   top_m_for_expensive: 2
   cascade_fail_threshold: 3
   no_widen: false
@@ -29,3 +32,10 @@ budget:
   max_steps: 15
   min_delta_per_cny_threshold: 0.01
   recent_r_consultations: 3
+
+# Code benchmark controls (Python standard library remains available).
+task_options:
+  code:
+    allowed_libraries: [stdlib, numpy]
+    max_speedup: 50.0
+    timing_tolerance_s: 2.0

@@ -1,0 +1,24 @@
+{
+  "task": "code",
+  "kind": "local",
+  "target": "local",
+  "backend": "mock",
+  "model": "local-vllm-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an autonomous code/solution generator. Output only the requested solution matching specifications without conversational commentary."
+    },
+    {
+      "role": "user",
+      "content": "### TASK\nOptimize batch cosine similarity top-K algorithm against reference implementation.\n\n### COMPLETE TASK CONTEXT & BEST CANDIDATE\nTASK SPECIFICATION:\n- Goal: Optimize batch cosine similarity top-K algorithm against reference implementation.\n- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n- Available libraries: Python standard library (math, random, collections, heapq); stdlib, numpy\n- Execution timeout limit: 15.0 seconds\n\nCURRENT BEST CANDIDATE CODE:\n```python\nimport math\n\ndef topk_cosine_sim(A, Q, k):\n    A_norms = []\n    for a in A:\n        s = sum(x * x for x in a)\n        A_norms.append(math.sqrt(s) + 1e-12)\n\n    results = []\n    for q in Q:\n        q_norm = math.sqrt(sum(x * x for x in q)) + 1e-12\n        sims = []\n        for i, a in enumerate(A):\n            dot = sum(x * y for x, y in zip(q, a))\n            sims.append((dot / (q_norm * A_norms[i]), i))\n        sims.sort(key=lambda item: item[0], reverse=True)\n        results.append([idx for _, idx in sims[:k]])\n    return results\n```\n\n### CURRENT STATE\nITERATION: 3\nSTAGNANT_STEPS: 0\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 1.3504 (Speedup: 1.35x)\nLAST_FAILURE_SIGNATURE: success\nDEV_FEEDBACK: Verified speedup: 1.35x (Candidate: 232.6ms, Ref: 314.2ms)\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\nimport math\n\ndef topk_cosine_sim(A, Q, k):\n    A_norms = []\n    for a in A:\n        s = sum(x * x for x in a)\n        A_norms.append(math.sqrt(s) + 1e-12)\n\n    results = []\n    for q in Q:\n        q_norm = math.sqrt(sum(x * x for x in q)) + 1e-12\n        sims = []\n        for i, a in enumerate(A):\n            dot = sum(x * y for x, y in zip(q, a))\n            sims.append((dot / (q_norm * A_norms[i]), i))\n        sims.sort(key=lambda item: item[0], reverse=True)\n        results.append([idx for _, idx in sims[:k]])\n    return results\n\n### CLOUD ADVICE / GUIDANCE\nStrategic Hint: Shift circle centers along the boundary outward to maximize interior radii clearance, or precompute vector norms.\n\n### VARIATION ANGLE\nvariation_1_seed_0\n\n### INSTRUCTION\nGenerate the complete revised candidate solution now."
+    }
+  ],
+  "max_tokens": 2048,
+  "temperature": 0.6,
+  "extra_body": {
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  }
+}

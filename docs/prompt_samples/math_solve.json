@@ -1,0 +1,22 @@
+{
+  "task": "math",
+  "kind": "solve",
+  "target": "cloud",
+  "backend": "mock",
+  "model": "cloud-flagship-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Directly implement the complete solution to achieve verified improvement. Output complete, valid code or data matching the task specifications."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 10\nSTAGNANT_STEPS: 2\nTASK: MATH (n=26)\nGOAL: Place 26 non-overlapping circles in a unit square [0, 1] x [0, 1] maximizing sum of radii.\nCURRENT_BEST_SCORE: 0.8748 (sum_r=2.3050, rel_imp=18.20%)\nLAST_FAILURE_SIGNATURE: math/circle_overlap\nDEV_FEEDBACK: Overlap between circle 0 and 1: dist=0.18500 < r1+r2=0.19000\nREQUIREMENT: Python file defining solve() returning 26 (x, y, r) tuples in [0,1]^2.\nPREVIOUS ATTEMPT (EXCERPT):\ndef solve():\n    circles = []\n    r = 0.09500\n    step = 0.18500\n    for i in range(5):\n        for j in range(5):\n            x = round(0.10 + i * step, 5)\n            y = round(0.10 + j * step, 5)\n            circles.append((x, y, r))\n    circles.append((0.94, 0.94, 0.03))\n    return circles\n### PREVIOUS ATTEMPT FEEDBACK\nSignature: math/circle_overlap\nOverlap between circle 0 and 1: dist=0.18500 < r1+r2=0.19000\n### FULL TASK SPECIFICATIONS & CURRENT BEST\nTASK SPECIFICATION:\n- Goal: Place 26 non-overlapping circles in a unit square [0, 1] x [0, 1] maximizing sum of radii.\n- Function signature: def solve() -> list[tuple[float, float, float]]\n- Return format: Exactly 26 (x, y, r) tuples strictly inside [0, 1] x [0, 1]\n- Constraints: No circle overlaps (dist >= r1 + r2) and no boundary overflow (r <= x <= 1-r, r <= y <= 1-r)\n- Available libraries: math, random, sys, json, numpy\n- Execution timeout limit: 30.0 seconds\n\nCURRENT BEST CANDIDATE CODE:\n```python\ndef solve():\n    circles = []\n    r = 0.09100\n    step = 0.18500\n    for i in range(5):\n        for j in range(5):\n            x = round(0.10 + i * step, 5)\n            y = round(0.10 + j * step, 5)\n            circles.append((x, y, r))\n    circles.append((0.94, 0.94, 0.03))\n    return circles\n```\n\n### INSTRUCTION\nDirectly generate the complete improved candidate solution code/JSON now."
+    }
+  ],
+  "max_tokens": 2048,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

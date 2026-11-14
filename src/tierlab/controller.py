@@ -36,6 +36,7 @@ from tierlab.prompts import (
     build_consultation_messages,
     build_local_prompt,
 )
+from tierlab.sandbox import start_sandbox_run
 from tierlab.state_card import format_and_truncate_state_card
 from tierlab.tasks.base import ResearchTask
 from tierlab.types import (
@@ -95,7 +96,11 @@ class ResearchController:
         run_id: str = "run_01",
         seed: int = 0,
     ) -> None:
+        start_sandbox_run()
         self.task = task
+        self._ledger_call_cursor = 0
+        self._unlogged_local_wall_s = 0.0
+        self.last_attempted_candidate = None
         self.gateway = gateway
         self.ledger = ledger
         self.config = config or ControllerConfig()
@@ -135,7 +140,7 @@ class ResearchController:
 
         # Step 0: Compute initial candidate score strictly via run_ladder (#5)
         init_cand = self.task.initial_candidate()
-        init_results = self.task.run_ladder(init_cand)
+        init_results = self._verify_candidate(init_cand)
         init_score = (
             init_results[-1].score
             if (init_results and all(r.valid for r in init_results))
@@ -176,6 +181,7 @@ class ResearchController:
 
     async def run(self) -> dict[str, Any]:
         """Execute research loop with in-loop dev feedback, followed by post-run held-out evaluation."""
+        start_sandbox_run()
         self.ledger.run_start_time = time.time()
         start_perf = time.perf_counter()
 
@@ -228,12 +234,13 @@ class ResearchController:
                 break
 
         # Record run end timestamp (#10)
-        self.ledger.run_end_time = time.time()
+        if not any(e.action == ActionType.STOP for e in self.ledger.entries):
+            self._record_stop("consecutive_stagnation_stopped" if self.consecutive_stagnation_steps >= self.config.stagnation_patience else "max_steps_reached")
 
         # Post-loop held-out final evaluation (#3):
         final_eval = self.task.run_final_evaluation(self.current_best_candidate)
         if final_eval:
-            self.ledger.record(
+            self._record(
                 LedgerEntry(
                     run=self.run_id,
                     step=self.step + 1,
@@ -260,10 +267,56 @@ class ResearchController:
                 )
             )
 
+        self.ledger.run_end_time = time.time()
         return self.ledger.summary(
             rho_gpu_cny_per_s=self.gateway.config.rho_gpu_cny_per_s,
             budget_b=self.budget.cloud_budget_cny,
         )
+
+    def _state_for_prompt(self) -> str:
+        card = self.task.state_card(self.current_best_candidate, self.recent_results)
+        # Put feedback first so the configurable bound preserves it ahead of code excerpts.
+        prefix = f"ITERATION: {self.step}\nSTAGNANT_STEPS: {self.consecutive_stagnation_steps}\n"
+        if self.last_attempted_candidate is not None:
+            card += "\nPREVIOUS ATTEMPT (EXCERPT):\n" + self.last_attempted_candidate.content[:600]
+        return prefix + card
+
+    def _verify_candidate(self, candidate: Candidate) -> list[VerificationResult]:
+        self.last_attempted_candidate = candidate
+        results = self.task.run_ladder(candidate)
+        self.recent_results = results
+        return results
+
+    def _duplicate_feedback(self) -> None:
+        previous = self.recent_results[-1] if self.recent_results else None
+        self.recent_results = [VerificationResult(
+            valid=False,
+            failure_signature=(previous.failure_signature if previous and previous.failure_signature else "candidate/duplicate"),
+            feedback="Repeated a previously seen candidate; no improvement. " + (previous.feedback if previous else ""),
+        )]
+
+    def _record(self, entry: LedgerEntry) -> None:
+        calls = self.gateway.call_history[self._ledger_call_cursor:]
+        if calls:
+            # A tierlab action may follow both a weak batch and an advisor call.
+            # Include every incurred call, including the failed local batch.
+            cloud = [r for r in calls if r.target in ('cloud', 'cloud_small')]
+            entry.cloud_in = sum(r.prompt_tokens for r in cloud)
+            entry.cloud_out = sum(r.completion_tokens for r in cloud)
+            entry.cloud_cny = sum(r.cost_cny for r in cloud)
+            entry.gpu_s = self._unlogged_local_wall_s
+            entry.gpu_cny = entry.gpu_s * self.gateway.config.rho_gpu_cny_per_s
+            self._unlogged_local_wall_s = 0.0
+        entry.extra["model_calls"] = {
+            "cloud": sum(r.target in ("cloud", "cloud_small") for r in calls),
+            "local": sum(r.target == "local" for r in calls),
+        }
+        self._ledger_call_cursor = len(self.gateway.call_history)
+        if self.recent_results:
+            result = self.recent_results[-1]
+            entry.extra.setdefault("failure_signature", result.failure_signature)
+            entry.extra.setdefault("feedback", result.feedback[:self.config.max_feedback_chars])
+        self.ledger.record(entry)
 
     def _compute_weak_call_costs(
         self,
@@ -287,8 +340,8 @@ class ResearchController:
 
     async def _step_tierlab(self) -> bool:
         """Core TierLab Adaptive Policy step."""
-        state_card_raw = self.task.state_card(self.current_best_candidate, self.recent_results)
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         full_context = self.task.context_for_model(self.current_best_candidate)
 
         cands, wall_s, call_records = await self._generate_weak_k(
@@ -334,7 +387,7 @@ class ResearchController:
                 if admitted:
                     admitted_id = admitted.lesson_id
 
-            self.ledger.record(
+            self._record(
                 LedgerEntry(
                     run=self.run_id,
                     step=self.step,
@@ -376,7 +429,7 @@ class ResearchController:
             self.consecutive_format_failures += 1
             if self.consecutive_format_failures <= self.config.max_format_failures:
                 # Retry locally only, no cloud consultation allowed
-                self.ledger.record(
+                self._record(
                     LedgerEntry(
                         run=self.run_id,
                         step=self.step,
@@ -407,7 +460,7 @@ class ResearchController:
         if self.config.enable_lessons:
             lesson = self.lessons.match(self.task.task_class, sig)
             if lesson:
-                self.ledger.record(
+                self._record(
                     LedgerEntry(
                         run=self.run_id,
                         step=self.step,
@@ -447,7 +500,7 @@ class ResearchController:
                 self.k_index += 1
                 self.current_k = self.k_schedule[self.k_index]
 
-                self.ledger.record(
+                self._record(
                     LedgerEntry(
                         run=self.run_id,
                         step=self.step,
@@ -472,7 +525,7 @@ class ResearchController:
                 return False
             else:
                 # Normal local retry within patience
-                self.ledger.record(
+                self._record(
                     LedgerEntry(
                         run=self.run_id,
                         step=self.step,
@@ -527,7 +580,7 @@ class ResearchController:
             solve_verified = False
             t_solve_v = time.perf_counter()
             if not is_dup:
-                results = self.task.run_ladder(solve_cand)
+                results = self._verify_candidate(solve_cand)
                 if results and results[-1].valid and results[-1].score > score_before:
                     solve_cand.metadata["score"] = results[-1].score
                     solve_cand.metadata["evidence"] = results[-1].evidence
@@ -539,7 +592,7 @@ class ResearchController:
                     self.consecutive_stagnation_steps = 0
             verify_s_solve = time.perf_counter() - t_solve_v
 
-            self.ledger.record(
+            self._record(
                 LedgerEntry(
                     run=self.run_id,
                     step=self.step,
@@ -563,6 +616,17 @@ class ResearchController:
             )
             return False
 
+        # Empty advice is a model failure, never an admitted lesson or useful guidance.
+        if not consult_record.content.strip():
+            self.recent_results = [VerificationResult(valid=False, failure_signature="model/empty_response",
+                                                      feedback="Cloud advisor returned empty content.")]
+            self._record(LedgerEntry(run=self.run_id, step=self.step, action=current_rung.value,
+                                    trigger="model/empty_response", cloud_in=consult_record.prompt_tokens,
+                                    cloud_out=consult_record.completion_tokens, cloud_cny=consult_record.cost_cny,
+                                    score_before=score_before, score_after=score_before, policy=self.policy.value,
+                                    seed=self.seed, config_hash=self.config_hash))
+            return False
+
         # Hint action
         self.last_consultation_action = current_rung.value
         self.last_consultation_guidance = consult_record.content
@@ -581,7 +645,7 @@ class ResearchController:
             )
             self.last_provisional_lesson_id = prov.lesson_id
 
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=self.step,
@@ -607,8 +671,8 @@ class ResearchController:
 
     async def _step_all_cloud(self) -> bool:
         """Fair all_cloud baseline: K=1 iterative consultation, stop on pass or stagnation (#1)."""
-        state_card_raw = self.task.state_card(self.current_best_candidate, self.recent_results)
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         full_context = self.task.context_for_model(self.current_best_candidate)
 
         messages = build_consultation_messages(
@@ -642,7 +706,7 @@ class ResearchController:
         t_v0 = time.perf_counter()
 
         if not is_dup:
-            results = self.task.run_ladder(candidate)
+            results = self._verify_candidate(candidate)
             self.recent_results = results
             if results and results[-1].valid and len(results) == len(self.task.ladder):
                 if results[-1].score > self.current_best_score:
@@ -658,10 +722,11 @@ class ResearchController:
             else:
                 self.consecutive_stagnation_steps += 1
         else:
+            self._duplicate_feedback()
             self.consecutive_stagnation_steps += 1
         verify_s = time.perf_counter() - t_v0
 
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=self.step,
@@ -687,8 +752,8 @@ class ResearchController:
 
     async def _step_no_advice_retry(self) -> bool:
         """Amendment #6: At trigger points, grant local model an extra round with zero consultation."""
-        state_card_raw = self.task.state_card(self.current_best_candidate, self.recent_results)
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         full_context = self.task.context_for_model(self.current_best_candidate)
 
         cands, wall_s, call_records = await self._generate_weak_k(
@@ -715,7 +780,7 @@ class ResearchController:
         else:
             self.consecutive_stagnation_steps += 1
 
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=self.step,
@@ -740,8 +805,8 @@ class ResearchController:
         return False
 
     async def _step_all_local(self) -> bool:
-        state_card_raw = self.task.state_card(self.current_best_candidate, self.recent_results)
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         full_context = self.task.context_for_model(self.current_best_candidate)
 
         cands, wall_s, call_records = await self._generate_weak_k(
@@ -767,7 +832,7 @@ class ResearchController:
         else:
             self.consecutive_stagnation_steps += 1
 
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=self.step,
@@ -792,8 +857,8 @@ class ResearchController:
         return False
 
     async def _step_cascade(self) -> bool:
-        state_card_raw = self.task.state_card(self.current_best_candidate, self.recent_results)
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         full_context = self.task.context_for_model(self.current_best_candidate)
 
         if self.consecutive_failures < self.config.cascade_fail_threshold:
@@ -822,7 +887,7 @@ class ResearchController:
                 self.consecutive_failures += 1
                 self.consecutive_stagnation_steps += 1
 
-            self.ledger.record(
+            self._record(
                 LedgerEntry(
                     run=self.run_id,
                     step=self.step,
@@ -869,7 +934,7 @@ class ResearchController:
             score_before = self.current_best_score
             t_v0 = time.perf_counter()
             if not is_dup:
-                results = self.task.run_ladder(cand)
+                results = self._verify_candidate(cand)
                 if results and results[-1].valid and results[-1].score > score_before:
                     cand.metadata["score"] = results[-1].score
                     cand.metadata["evidence"] = results[-1].evidence
@@ -883,7 +948,7 @@ class ResearchController:
                 self.consecutive_stagnation_steps += 1
             verify_s = time.perf_counter() - t_v0
 
-            self.ledger.record(
+            self._record(
                 LedgerEntry(
                     run=self.run_id,
                     step=self.step,
@@ -908,8 +973,8 @@ class ResearchController:
             return False
 
     async def _execute_static_split_plan(self) -> str:
-        state_card_raw = self.task.state_card(self.current_best_candidate, [])
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         messages = [
             {"role": "system", "content": "You are a research planner. Generate a 3-stage optimization strategy."},
             {"role": "user", "content": f"Task: {self.task.goal}\nState:\n{state_card_res.content}"},
@@ -921,7 +986,7 @@ class ResearchController:
             temperature=0.7,
             task_class=self.task.task_class,
         )
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=0,
@@ -945,8 +1010,8 @@ class ResearchController:
         return rec.content
 
     async def _step_static_split(self, static_plan: str | None) -> bool:
-        state_card_raw = self.task.state_card(self.current_best_candidate, self.recent_results)
-        state_card_res = format_and_truncate_state_card(state_card_raw)
+        state_card_raw = self._state_for_prompt()
+        state_card_res = format_and_truncate_state_card(state_card_raw, self.config.max_feedback_chars)
         full_context = self.task.context_for_model(self.current_best_candidate)
 
         cands, wall_s, call_records = await self._generate_weak_k(
@@ -973,7 +1038,7 @@ class ResearchController:
         else:
             self.consecutive_stagnation_steps += 1
 
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=self.step,
@@ -1021,7 +1086,7 @@ class ResearchController:
                 cloud_guidance=cloud_guidance,
                 temperature_angle="sample",
             )
-            worst_single = self.gateway.estimate_call_worst_case("cloud_small", sample_messages)
+            worst_single = self.gateway.estimate_call_worst_case("cloud_small", sample_messages, self.config.local_max_tokens)
             reserved_amount = worst_single * k
             # Raises BudgetExceededError before creating coroutines if budget is insufficient (#15)
             self.gateway.reserve_budget(reserved_amount)
@@ -1042,6 +1107,7 @@ class ResearchController:
                 self.gateway.call(
                     target=target,
                     messages=messages,
+                    max_tokens=self.config.local_max_tokens,
                     temperature=temp,
                     task_class=self.task.task_class,
                 )
@@ -1055,6 +1121,8 @@ class ResearchController:
                 self.gateway.release_budget(reserved_amount)
 
         total_wall_s = time.perf_counter() - t0
+        if target == 'local':
+            self._unlogged_local_wall_s += total_wall_s
 
         records: list[GatewayCallRecord] = []
         errors: list[Exception] = []
@@ -1100,6 +1168,10 @@ class ResearchController:
                 continue
             self.seen_candidate_hashes.add(h)
 
+            self.last_attempted_candidate = cand
+            if not cand.content.strip():
+                evaluated_pairs.append((cand, self._verify_candidate(cand)))
+                continue
             results: list[VerificationResult] = []
             passed_cheap = True
             for verifier in self.task.ladder:
@@ -1118,14 +1190,19 @@ class ResearchController:
         if not valid_candidates:
             if evaluated_pairs:
                 cand, res = evaluated_pairs[0]
+                self.recent_results = res
+                self.last_attempted_candidate = cand
                 return cand, 0.0, res, any_duplicates
-            return self.current_best_candidate, 0.0, [], any_duplicates
+            self._duplicate_feedback()
+            return self.current_best_candidate, 0.0, self.recent_results, any_duplicates
 
         # Separate expensive verifiers
         expensive_verifiers = [v for v in self.task.ladder if v.is_expensive]
         if not expensive_verifiers:
             best_cand, best_res = max(valid_candidates, key=lambda p: p[1][-1].score if p[1] else 0.0)
             score = best_res[-1].score if best_res else 0.0
+            self.recent_results = best_res
+            self.last_attempted_candidate = best_cand
             return best_cand, score, best_res, any_duplicates
 
         # Pre-filter top m candidates before expensive verifier (#2)
@@ -1151,24 +1228,31 @@ class ResearchController:
                 best_cand = cand
                 best_results = full_results
 
+        self.recent_results = best_results
+        self.last_attempted_candidate = best_cand
         return best_cand, best_score, best_results, any_duplicates
 
     async def _execute_consultation(self, rung: ConsultationRung, state_card: str) -> Any:
+        state_card = format_and_truncate_state_card(self._state_for_prompt(), self.config.max_feedback_chars).content
         failure_detail = None
         if self.recent_results:
             failed = [r for r in self.recent_results if not r.valid]
             if failed:
-                failure_detail = f"{failed[-1].feedback} (Signature: {failed[-1].failure_signature})"
+                failure_detail = f"Signature: {failed[-1].failure_signature}\n{failed[-1].feedback}"[:self.config.max_feedback_chars]
 
         # Hint includes state card and truncated candidate; solve includes full context (#1)
-        full_ctx = self.task.context_for_model(self.current_best_candidate, rung=rung.value)
+        full_ctx = self.task.context_for_model(self.current_best_candidate, rung=rung.value, recent_results=self.recent_results)
+        if rung == ConsultationRung.HINT:
+            # The bounded state above is authoritative; avoid duplicating an unbounded
+            # state card inside task-specific hint context.
+            full_ctx = full_ctx[full_ctx.index('CURRENT BEST CANDIDATE (TRUNCATED):'):]
         messages = build_consultation_messages(
             rung=rung,
             state_card=state_card,
             failure_detail=failure_detail,
             full_context=full_ctx,
         )
-        max_tokens = RUNG_MAX_TOKENS.get(rung, 500)
+        max_tokens = self.config.hint_max_tokens if rung == ConsultationRung.HINT else RUNG_MAX_TOKENS.get(rung, 500)
         rec = await self.gateway.call(
             target="cloud",
             messages=messages,
@@ -1207,7 +1291,7 @@ class ResearchController:
         return roi < self.budget.min_delta_per_cny_threshold
 
     def _record_stop(self, reason: str) -> None:
-        self.ledger.record(
+        self._record(
             LedgerEntry(
                 run=self.run_id,
                 step=self.step,

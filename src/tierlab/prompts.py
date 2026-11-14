@@ -13,7 +13,7 @@ from __future__ import annotations
 from tierlab.types import ConsultationRung
 
 RUNG_MAX_TOKENS = {
-    ConsultationRung.HINT: 150,
+    ConsultationRung.HINT: 400,
     ConsultationRung.SOLVE: 2048,
     ConsultationRung.DIAGNOSE: 400,
     ConsultationRung.REPLAN: 800,
@@ -27,7 +27,7 @@ SYSTEM_PROMPT_PREFIX = (
 
 SYSTEM_PROMPTS = {
     ConsultationRung.HINT: (
-        f"{SYSTEM_PROMPT_PREFIX} Provide a brief strategic direction or intuition (max 150 tokens). "
+        f"{SYSTEM_PROMPT_PREFIX} Provide a brief strategic hint or direction. "
         "Do not write full code or detailed implementations."
     ),
     ConsultationRung.SOLVE: (
@@ -51,14 +51,16 @@ def build_consultation_messages(
     full_context: str | None = None,
 ) -> list[dict[str, str]]:
     system_content = SYSTEM_PROMPTS.get(rung, SYSTEM_PROMPTS[ConsultationRung.HINT])
-    user_parts: list[str] = []
+    user_parts: list[str] = [f"### CURRENT STATE CARD\n{state_card}"]
+    if failure_detail:
+        user_parts.append(f"### PREVIOUS ATTEMPT FEEDBACK\n{failure_detail}")
 
     if rung == ConsultationRung.HINT:
         ctx = full_context or f"### CURRENT STATE CARD\n{state_card}"
         user_parts.append(f"### HINT CONTEXT (STATE & CANDIDATE)\n{ctx}")
         user_parts.append(
             "\n### INSTRUCTION\n"
-            "The local solver is stalled. Provide a concise strategic hint or direction (<= 150 tokens) "
+            "The local solver is stalled. Provide a concise strategic hint or direction "
             "for the next iteration."
         )
     elif rung == ConsultationRung.SOLVE:
@@ -108,8 +110,7 @@ def build_local_prompt(
     ]
     if full_context:
         user_parts.append(f"\n### COMPLETE TASK CONTEXT & BEST CANDIDATE\n{full_context}")
-    else:
-        user_parts.append(f"\n### CURRENT STATE\n{state_card}")
+    user_parts.append(f"\n### CURRENT STATE\n{state_card}")
 
     if lesson_advice:
         user_parts.append(f"\n### REUSED PROVEN LESSON\n{lesson_advice}")

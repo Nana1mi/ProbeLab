@@ -57,9 +57,9 @@ class VerificationResult(BaseModel):
 
 class PricingConfig(BaseModel):
     """Token pricing in CNY per million tokens."""
-    prompt_cny_per_m: float = 0.0
-    cached_cny_per_m: float = 0.0
-    completion_cny_per_m: float = 0.0
+    prompt_cny_per_m: float | None = Field(default=None, ge=0)
+    cached_cny_per_m: float | None = Field(default=None, ge=0)
+    completion_cny_per_m: float | None = Field(default=None, ge=0)
 
 
 class ModelEndpointConfig(BaseModel):
@@ -68,6 +68,8 @@ class ModelEndpointConfig(BaseModel):
     api_key_env: str = "OPENAI_API_KEY"
     pricing: PricingConfig = Field(default_factory=PricingConfig)
     supports_guided_decoding: bool = False
+    extra_body: dict[str, Any] = Field(default_factory=dict)
+    max_tokens: int = Field(default=2048, gt=0)
     timeout_s: float = 60.0
     max_retries: int = 3
 
@@ -164,3 +166,6 @@ class ControllerConfig(BaseModel):
     alpha_cny_per_min: float = 0.006
     noise_threshold: float = 0.08
     backend: str = "mock"                     # "mock" or "real"
+    local_max_tokens: int = Field(default=2048, gt=0)
+    hint_max_tokens: int = Field(default=400, gt=0)
+    max_feedback_chars: int = Field(default=2400, ge=256)

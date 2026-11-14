@@ -1,0 +1,20 @@
+# Reproducible mock request capture. No provider calls, API keys or GPU.
+backend: mock
+budget:
+  max_steps: 15
+  max_wall_clock_s: 300.0
+  cloud_budget_cny: 5.0
+controller:
+  k_schedule: [1]
+  k_init: 1
+  no_widen: true
+  local_patience: 1
+  stagnation_patience: 4
+  local_max_tokens: 2048
+  hint_max_tokens: 400
+  max_feedback_chars: 2400
+task_options:
+  code:
+    allowed_libraries: [stdlib, numpy]
+    max_speedup: 50.0
+    timing_tolerance_s: 2.0

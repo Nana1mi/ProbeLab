@@ -146,6 +146,9 @@ class DecisionLedger:
             "consultations_by_rung": consultations_by_rung,
             "lesson_hits": lesson_hits,
             "duplicates_skipped": duplicates_skipped,
+            "cloud_calls": sum(e.extra.get('model_calls', {}).get('cloud', 0) for e in self.entries),
+            "local_calls": sum(e.extra.get('model_calls', {}).get('local', 0) for e in self.entries),
+            "stop_reason": next((e.trigger for e in reversed(self.entries) if e.action == 'stop'), 'unknown'),
         }
 
 

@@ -1,0 +1,24 @@
+{
+  "task": "paper",
+  "kind": "local",
+  "target": "local",
+  "backend": "mock",
+  "model": "local-vllm-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an autonomous code/solution generator. Output only the requested solution matching specifications without conversational commentary."
+    },
+    {
+      "role": "user",
+      "content": "### TASK\nAnswer questions with verbatim quotes and paragraph localization, scoring factual and synthesis questions separately.\n\n### COMPLETE TASK CONTEXT & BEST CANDIDATE\nTASK SPECIFICATION:\n- Goal: Answer questions with verbatim quotes and paragraph localization, scoring factual and synthesis questions separately.\n- Return Format: Valid JSON with root object having 'answers' list of objects: [{'qid': '...', 'answer': '...', 'quote': '...'}]\n- Quote Requirements: A relevant verbatim substring from the paragraph supporting each question, length >= 15 chars; the normalized answer must occur in that quote.\n- Execution timeout limit: 10.0 seconds\n\nFULL SOURCE PAPERS:\n--- PAPER FILE: sample_paper_1.txt ---\n[PLACEHOLDER SYNTHETIC TEST PAPER - FOR FRAMEWORK TESTING ONLY]\n\nParagraph 0: Title and Introduction\nThis synthetic document provides placeholder text to verify quote-grounding, paragraph localization, and question-answering verification for TierLab. No real scientific paper contents are contained herein.\n\nParagraph 1: Architecture and Methods\nOur test setup evaluates two coordinating modules: a local solver and an escalation advisor. We compare our approach against the SimpleGreedy baseline. The local solver operates with bounded latency and high parallelism.\n\nParagraph 2: Evaluation and Memory Findings\nAll benchmarks were executed on an isolated test workstation. Under full load, the system reached a peak memory usage of 4.2 GB. The communication overhead remained below 12 milliseconds per round.\n\nParagraph 3: Synthesis and Discussion\nIntegrating local speculative execution with hierarchical escalation effectively minimizes edge latency while preserving verification guarantees. The trade-off between local widening and escalation governs overall efficiency.\n\n\nALL QUESTIONS TO ANSWER:\n[\n  {\n    \"qid\": \"Q1\",\n    \"type\": \"factual\",\n    \"question\": \"What is the peak memory usage reported? [占位示例 / PLACEHOLDER SYNTHETIC EXAMPLE]\"\n  },\n  {\n    \"qid\": \"Q2\",\n    \"type\": \"factual\",\n    \"question\": \"What baseline algorithm is the approach compared against? [占位示例 / PLACEHOLDER SYNTHETIC EXAMPLE]\"\n  },\n  {\n    \"qid\": \"Q3\",\n    \"type\": \"synthesis\",\n    \"question\": \"What two mechanisms govern overall efficiency in the discussion? [占位示例 / PLACEHOLDER SYNTHETIC EXAMPLE]\"\n  }\n]\n\nCURRENT BEST CANDIDATE JSON:\n```json\n{\n  \"answers\": [\n    {\n      \"qid\": \"Q1\",\n      \"answer\": \"4.2 GB\",\n      \"quote\": \"Under full load, the system reached a peak memory usage of 4.2 GB.\"\n    },\n    {\n      \"qid\": \"Q2\",\n      \"answer\": \"SimpleGreedy\",\n      \"quote\": \"We compare our approach against the SimpleGreedy baseline.\"\n    },\n    {\n      \"qid\": \"Q3\",\n      \"answer\": \"local widening and escalation\",\n      \"quote\": \"The trade-off between local widening and escalation governs overall efficiency.\"\n    }\n  ]\n}\n```\n\n### CURRENT STATE\nITERATION: 4\nSTAGNANT_STEPS: 1\nTASK: PAPER\nGOAL: Answer questions with verbatim quotes and paragraph localization, scoring factual and synthesis questions separately.\nCURRENT_BEST_SCORE: 1.0000 (Factual: 1.00, Synthesis: 0.00)\nLAST_FAILURE_SIGNATURE: candidate/duplicate\nDEV_FEEDBACK: Repeated a previously seen candidate; no improvement. Factual: 2/2 (100.0%), Synthesis: 0/0 (0.0%), Overall: 100.0% (2/2)\nREQUIREMENT: JSON object with 'answers': list of objects with qid, answer, and verbatim quote.\nPREVIOUS ATTEMPT (EXCERPT):\n{\n  \"answers\": [\n    {\n      \"qid\": \"Q1\",\n      \"answer\": \"4.2 GB\",\n      \"quote\": \"Under full load, the system reached a peak memory usage of 4.2 GB.\"\n    },\n    {\n      \"qid\": \"Q2\",\n      \"answer\": \"SimpleGreedy\",\n      \"quote\": \"We compare our approach against the SimpleGreedy baseline.\"\n    },\n    {\n      \"qid\": \"Q3\",\n      \"answer\": \"local widening and escalation\",\n      \"quote\": \"The trade-off between local widening and escalation governs overall efficiency.\"\n    }\n  ]\n}\n\n### VARIATION ANGLE\nvariation_1_seed_0\n\n### INSTRUCTION\nGenerate the complete revised candidate solution now."
+    }
+  ],
+  "max_tokens": 2048,
+  "temperature": 0.6,
+  "extra_body": {
+    "chat_template_kwargs": {
+      "enable_thinking": false
+    }
+  }
+}

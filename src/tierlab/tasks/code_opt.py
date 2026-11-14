@@ -65,6 +65,7 @@ import json
 import random
 import sys
 import time
+from time import perf_counter as _pc
 
 try:
     from reference import topk_cosine_sim
@@ -88,9 +89,9 @@ try:
         A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
         Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
 
-    t0 = time.perf_counter()
+    t0 = _pc()
     ans = topk_cosine_sim(A, Q, k)
-    elapsed = time.perf_counter() - t0
+    elapsed = _pc() - t0
 
     print(json.dumps({
         "status": "ok",
@@ -107,9 +108,13 @@ import json
 import random
 import sys
 import time
+from time import perf_counter as _pc
 
 try:
     import solution
+    if time.perf_counter is not _pc:
+        print(json.dumps({"status": "suspicious_timing", "message": "Candidate replaced the clock"}))
+        sys.exit(0)
 
     if not hasattr(solution, "topk_cosine_sim"):
         print(json.dumps({"status": "error", "message": "Module does not define topk_cosine_sim"}))
@@ -134,9 +139,12 @@ try:
         A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
         Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
 
-    t0 = time.perf_counter()
+    t0 = _pc()
     ans = solution.topk_cosine_sim(A, Q, k)
-    elapsed = time.perf_counter() - t0
+    elapsed = _pc() - t0
+    if time.perf_counter is not _pc:
+        print(json.dumps({"status": "suspicious_timing", "message": "Candidate replaced the clock"}))
+        sys.exit(0)
 
     print(json.dumps({
         "status": "ok",
@@ -157,13 +165,16 @@ def run_reference_sandbox(mode: str = "benchmark", seed: int = 42, timeout_s: fl
         extra_files={"reference.py": REFERENCE_CODE},
         timeout_s=timeout_s,
         args=["--mode", mode, "--seed", str(seed)],
+        use_cache=mode not in ("benchmark", "hidden"),
     )
     if res.timed_out:
         return {"status": "timeout", "message": "Reference timed out"}
     if res.returncode != 0:
         return {"status": "crash", "message": res.stderr}
     try:
-        return json.loads(res.stdout.strip())
+        data = json.loads(res.stdout.strip())
+        data['parent_elapsed_s'] = res.wall_clock_s
+        return data
     except Exception:
         return {"status": "error", "message": f"Invalid json: {res.stdout}"}
 
@@ -176,15 +187,47 @@ def run_candidate_sandbox(candidate_code: str, mode: str = "benchmark", seed: in
         runner_script=CAND_RUNNER_SCRIPT,
         timeout_s=timeout_s,
         args=["--mode", mode, "--seed", str(seed)],
+        use_cache=mode not in ("benchmark", "hidden"),
     )
     if res.timed_out:
         return {"status": "timeout", "message": "Candidate timed out"}
     if res.returncode != 0 and not res.stdout:
         return {"status": "crash", "message": res.stderr}
     try:
-        return json.loads(res.stdout.strip())
+        data = json.loads(res.stdout.strip())
+        data['parent_elapsed_s'] = res.wall_clock_s
+        return data
     except Exception:
         return {"status": "error", "message": f"Invalid json: {res.stdout}"}
+
+
+def suspicious_timing(ref: dict, cand: dict, max_speedup: float, tolerance_s: float) -> bool:
+    """Cross-check untrusted inner timing against the parent's independent clock.
+
+    Process startup/import/input creation receive a fixed grace period. This is
+    an anomaly detector, not an OS security boundary for adversarial programs.
+    """
+    import math
+    if cand.get('status') == 'suspicious_timing':
+        return True
+    for result in (ref, cand):
+        if result.get('status') != 'ok':
+            continue
+        inner = float(result.get('elapsed_s', 0))
+        outer = float(result.get('parent_elapsed_s', 0))
+        if not math.isfinite(inner) or not math.isfinite(outer) or inner <= 0 or outer <= 0:
+            return True
+        if inner > outer * 1.05 + .01 or outer > inner * 10 + tolerance_s:
+            return True
+    if ref.get('status') == cand.get('status') == 'ok':
+        return float(ref['elapsed_s']) / max(float(cand['elapsed_s']), 1e-12) > max_speedup
+    return False
+
+
+def timing_rejection(ref: dict, cand: dict, elapsed: float) -> VerificationResult:
+    return VerificationResult(valid=False, score=0.0, failure_signature='code/suspicious_timing',
+                              feedback='Rejected timing anomaly or speedup above the configured limit.',
+                              evidence={'ref': ref, 'cand': cand}, elapsed_s=elapsed)
 
 
 class CodeL0Verifier(Verifier):
@@ -197,6 +240,9 @@ class CodeL0Verifier(Verifier):
         data = run_candidate_sandbox(candidate.content, mode="visible", seed=0, timeout_s=10.0)
         elapsed = time.perf_counter() - t0
 
+        if data.get("status") == "suspicious_timing":
+            return VerificationResult(valid=False, feedback=data.get('message', 'Clock tampering'),
+                                      evidence=data, failure_signature='code/suspicious_timing', elapsed_s=elapsed)
         if data.get("status") == "timeout":
             return VerificationResult(
                 valid=False,
@@ -305,8 +351,11 @@ class CodeL2Verifier(Verifier):
     name = "code_l2_speedup"
     is_expensive = True  # Benchmarking is declared expensive (#2)
 
-    def __init__(self, noise_threshold: float = 0.08) -> None:
+    def __init__(self, noise_threshold: float = 0.08, max_speedup: float = 50.0,
+                 timing_tolerance_s: float = 2.0) -> None:
         self.noise_threshold = noise_threshold
+        self.max_speedup = max_speedup
+        self.timing_tolerance_s = timing_tolerance_s
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
@@ -331,6 +380,8 @@ class CodeL2Verifier(Verifier):
             ref_res = run_reference_sandbox(mode="benchmark", seed=fresh_seed, timeout_s=30.0)
             cand_res = run_candidate_sandbox(candidate.content, mode="benchmark", seed=fresh_seed, timeout_s=30.0)
 
+            if suspicious_timing(ref_res, cand_res, self.max_speedup, self.timing_tolerance_s):
+                return timing_rejection(ref_res, cand_res, time.perf_counter() - t0)
             if ref_res.get("status") != "ok" or cand_res.get("status") != "ok":
                 return VerificationResult(
                     valid=False,
@@ -383,6 +434,10 @@ class CodeFinalEvaluationVerifier(Verifier):
     name = "code_final_eval"
     is_expensive = True
 
+    def __init__(self, max_speedup: float = 50.0, timing_tolerance_s: float = 2.0) -> None:
+        self.max_speedup = max_speedup
+        self.timing_tolerance_s = timing_tolerance_s
+
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
         held_out_seed = 9999
@@ -390,6 +445,8 @@ class CodeFinalEvaluationVerifier(Verifier):
         cand_res = run_candidate_sandbox(candidate.content, mode="benchmark", seed=held_out_seed, timeout_s=30.0)
         elapsed = time.perf_counter() - t0
 
+        if suspicious_timing(ref_res, cand_res, self.max_speedup, self.timing_tolerance_s):
+            return timing_rejection(ref_res, cand_res, elapsed)
         if ref_res.get("status") == "ok" and cand_res.get("status") == "ok":
             # Check correctness on held-out seed
             if ref_res.get("ans") == cand_res.get("ans"):
@@ -425,7 +482,15 @@ class CodeOptimizationTask(ResearchTask):
         workspace: Path | None = None,
         budget: Budget | None = None,
         noise_threshold: float = 0.08,
+        max_speedup: float = 50.0,
+        timing_tolerance_s: float = 2.0,
+        allowed_libraries: list[str] | None = None,
     ) -> None:
+        if max_speedup <= 1 or timing_tolerance_s <= 0:
+            raise ValueError('Timing limits must be positive and max_speedup must exceed 1')
+        self.max_speedup = max_speedup
+        self.timing_tolerance_s = timing_tolerance_s
+        self.allowed_libraries = ['stdlib', 'numpy'] if allowed_libraries is None else allowed_libraries
         self.noise_threshold = noise_threshold
         super().__init__(workspace=workspace, budget=budget)
 
@@ -433,11 +498,11 @@ class CodeOptimizationTask(ResearchTask):
         return [
             CodeL0Verifier(),
             CodeL1Verifier(),
-            CodeL2Verifier(noise_threshold=self.noise_threshold),
+            CodeL2Verifier(noise_threshold=self.noise_threshold, max_speedup=self.max_speedup, timing_tolerance_s=self.timing_tolerance_s),
         ]
 
     def build_final_verifier(self) -> Verifier:
-        return CodeFinalEvaluationVerifier()
+        return CodeFinalEvaluationVerifier(self.max_speedup, self.timing_tolerance_s)
 
     def state_card(
         self,
@@ -455,7 +520,7 @@ class CodeOptimizationTask(ResearchTask):
         last_sig = "none"
         last_msg = "none"
         if recent_results:
-            failed = [r for r in recent_results if not r.valid]
+            failed = [r for r in recent_results if not r.valid or r.failure_signature]
             if failed:
                 last_sig = failed[-1].failure_signature or "unknown"
                 last_msg = failed[-1].feedback
@@ -493,19 +558,20 @@ class CodeOptimizationTask(ResearchTask):
         self,
         current_best: Candidate | None = None,
         rung: str | None = None,
+        recent_results: list[VerificationResult] | None = None,
     ) -> str:
         best_code = current_best.content if current_best else self.initial_candidate().content
         if rung == "hint":
-            card = self.state_card(current_best, [])
             truncated_cand = best_code[:400] + ("..." if len(best_code) > 400 else "")
-            return f"STATE CARD:\n{card}\n\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
+            card = self.state_card(current_best, recent_results or [])
+            return f"STATE CARD:\n{card}\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
 
         return (
             f"TASK SPECIFICATION:\n"
             f"- Goal: {self.goal}\n"
             f"- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n"
             f"- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n"
-            f"- Available libraries: Python standard library (math, random, collections, heapq)\n"
+            f"- Available libraries: Python standard library (math, random, collections, heapq); {', '.join(self.allowed_libraries)}\n"
             f"- Execution timeout limit: 15.0 seconds\n\n"
             f"CURRENT BEST CANDIDATE CODE:\n"
             f"```python\n{best_code}\n```"

@@ -1,6 +1,8 @@
 # configs/models.yaml
 # 模型网关配置：模型名、base_url、token 单价（单位：元 / 百万 tokens）
-# 真实使用时请根据服务商定价页填入实际价格与密钥环境变量
+# real 后端要求所有云端单价显式填写；null 是占位符，启动即报错。
+# mock 使用合成价格，仅用于测试记账，不能据此比较真实费用。
+# SiliconFlow 参数参考：https://docs.siliconflow.cn/docs/api/chat-completions-post
 
 cloud_model:
   name: "cloud-flagship-model"  # 云端大模型，按服务商实际模型名填写（如 DeepSeek-V3 / Qwen-Max）
@@ -8,9 +10,11 @@ cloud_model:
   api_key_env: "SILICONFLOW_API_KEY"
   pricing:
     # 按定价页填写（单位：元 / 百万 tokens）
-    prompt_cny_per_m: 2.0       # 按定价页填写
-    cached_cny_per_m: 0.5       # 按定价页填写
-    completion_cny_per_m: 8.0   # 按定价页填写
+    prompt_cny_per_m: null       # 按定价页填写
+    cached_cny_per_m: null       # 按定价页填写
+    completion_cny_per_m: null   # 按定价页填写
+  extra_body: {enable_thinking: false}
+  max_tokens: 2048
   supports_guided_decoding: false
   timeout_s: 60.0
   max_retries: 3
@@ -24,6 +28,8 @@ local_model:
     prompt_cny_per_m: 0.0       # 本地边际成本为 0
     cached_cny_per_m: 0.0       # 本地边际成本为 0
     completion_cny_per_m: 0.0   # 本地边际成本为 0
+  extra_body: {chat_template_kwargs: {enable_thinking: false}}
+  max_tokens: 2048
   supports_guided_decoding: true
   timeout_s: 30.0
   max_retries: 2
@@ -34,9 +40,11 @@ cloud_small_model:
   api_key_env: "SILICONFLOW_API_KEY"
   pricing:
     # 按定价页填写（单位：元 / 百万 tokens）
-    prompt_cny_per_m: 1.8       # 按定价页填写
-    cached_cny_per_m: 0.4       # 按定价页填写
-    completion_cny_per_m: 5.0   # 按定价页填写
+    prompt_cny_per_m: null       # 按定价页填写
+    cached_cny_per_m: null       # 按定价页填写
+    completion_cny_per_m: null   # 按定价页填写
+  extra_body: {enable_thinking: false}
+  max_tokens: 2048
   supports_guided_decoding: false
   timeout_s: 30.0
   max_retries: 2

@@ -55,7 +55,7 @@ def generate_three_curves_and_scatter(ledgers: list[DecisionLedger]) -> tuple[st
     ax1.set_title("1. Quality vs. Cumulative Cloud Cost (CNY)", fontsize=11, fontweight="bold")
     ax1.set_xlabel("Cloud Spend (CNY)")
     ax1.set_ylabel("Completion Score")
-    ax1.set_ylim(-0.05, 1.05)
+    ax1.set_ylim(bottom=-0.05)
     ax1.grid(True, linestyle="--", alpha=0.5)
     ax1.legend(loc="lower right", fontsize=8)
     fig1.tight_layout()
@@ -79,7 +79,7 @@ def generate_three_curves_and_scatter(ledgers: list[DecisionLedger]) -> tuple[st
     ax2.set_title("2. Quality vs. Cumulative Total Cost (Cloud + GPU)", fontsize=11, fontweight="bold")
     ax2.set_xlabel("Total Cost: Cloud ¥ + GPU ¥ (CNY)")
     ax2.set_ylabel("Completion Score")
-    ax2.set_ylim(-0.05, 1.05)
+    ax2.set_ylim(bottom=-0.05)
     ax2.grid(True, linestyle="--", alpha=0.5)
     ax2.legend(loc="lower right", fontsize=8)
     fig2.tight_layout()
@@ -103,7 +103,7 @@ def generate_three_curves_and_scatter(ledgers: list[DecisionLedger]) -> tuple[st
     ax3.set_title("3. Quality vs. Cumulative Wall-Clock Time (s)", fontsize=11, fontweight="bold")
     ax3.set_xlabel("Elapsed Wall-Clock (seconds)")
     ax3.set_ylabel("Completion Score")
-    ax3.set_ylim(-0.05, 1.05)
+    ax3.set_ylim(bottom=-0.05)
     ax3.grid(True, linestyle="--", alpha=0.5)
     ax3.legend(loc="lower right", fontsize=8)
     fig3.tight_layout()
@@ -126,7 +126,7 @@ def generate_three_curves_and_scatter(ledgers: list[DecisionLedger]) -> tuple[st
     ax4.set_title("Cost-Time-Completion Frontier Scatter", fontsize=11, fontweight="bold")
     ax4.set_xlabel("Total Wall Clock Time (s)")
     ax4.set_ylabel("Final Score")
-    ax4.set_ylim(-0.05, 1.05)
+    ax4.set_ylim(bottom=-0.05)
     ax4.grid(True, linestyle="--", alpha=0.5)
     ax4.legend(loc="lower right", fontsize=8)
     fig4.tight_layout()
@@ -265,11 +265,11 @@ def generate_html_report(runs_dir: Path | str, output_path: Path | str | None = 
       <thead>
         <tr>
           <th>Run</th><th>Policy</th><th>Seed</th><th>Steps</th><th>Final Score</th>
-          <th>Cloud ¥</th><th>GPU ¥</th><th>Wall s</th><th>BA-AUC</th><th>Lesson Hits</th><th>Dups</th>
+          <th>Cloud ¥</th><th>GPU ¥</th><th>Wall s</th><th>BA-AUC</th><th>Lesson Hits</th><th>Dups</th><th>Cloud calls</th><th>Local calls</th><th>Stop reason</th>
         </tr>
       </thead>
       <tbody>
-        {''.join(f"<tr><td><strong>{s['run']}</strong></td><td>{s['policy']}</td><td>{s['seed']}</td><td>{s['total_steps']}</td><td><strong>{s['final_score']}</strong></td><td>¥{s['total_cloud_cny']:.4f}</td><td>¥{s['total_gpu_cny']:.4f}</td><td>{s['total_wall_s']:.1f}s</td><td>{s['ba_auc']:.3f}</td><td>{s['lesson_hits']}</td><td>{s.get('duplicates_skipped', 0)}</td></tr>" for s in summaries)}
+        {''.join(f"<tr><td><strong>{s['run']}</strong></td><td>{s['policy']}</td><td>{s['seed']}</td><td>{s['total_steps']}</td><td><strong>{s['final_score']}</strong></td><td>¥{s['total_cloud_cny']:.4f}</td><td>¥{s['total_gpu_cny']:.4f}</td><td>{s['total_wall_s']:.1f}s</td><td>{s['ba_auc']:.3f}</td><td>{s['lesson_hits']}</td><td>{s.get('duplicates_skipped', 0)}</td><td>{s['cloud_calls']}</td><td>{s['local_calls']}</td><td>{s['stop_reason']}</td></tr>" for s in summaries)}
       </tbody>
     </table>
   </div>

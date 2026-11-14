@@ -1,0 +1,22 @@
+{
+  "task": "paper",
+  "kind": "hint",
+  "target": "cloud",
+  "backend": "mock",
+  "model": "cloud-flagship-model",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Provide a brief strategic hint or direction. Do not write full code or detailed implementations."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 1\nSTAGNANT_STEPS: 1\nTASK: PAPER\nGOAL: Answer questions with verbatim quotes and paragraph localization, scoring factual and synthesis questions separately.\nCURRENT_BEST_SCORE: 0.0000 (Factual: 0.00, Synthesis: 0.00)\nLAST_FAILURE_SIGNATURE: paper/quote_unmatched\nDEV_FEEDBACK: Quote for Q1 not found in sample_paper_1.txt: 'This sentence is completely fabricated and will no...'\nREQUIREMENT: JSON object with 'answers': list of objects with qid, answer, and verbatim quote.\nPREVIOUS ATTEMPT (EXCERPT):\n{\n  \"answers\": [\n    {\n      \"qid\": \"Q1\",\n      \"answer\": \"4.2 GB\",\n      \"quote\": \"This sentence is completely fabricated and will not match any paragraph.\"\n    },\n    {\n      \"qid\": \"Q2\",\n      \"answer\": \"SimpleGreedy\",\n      \"quote\": \"Another fabricated quotation for failure test in QA.\"\n    }\n  ]\n}\n### PREVIOUS ATTEMPT FEEDBACK\nSignature: paper/quote_unmatched\nQuote for Q1 not found in sample_paper_1.txt: 'This sentence is completely fabricated and will no...'\n### HINT CONTEXT (STATE & CANDIDATE)\nCURRENT BEST CANDIDATE (TRUNCATED):\n{\n  \"answers\": [\n    {\n      \"qid\": \"Q1\",\n      \"answer\": \"\",\n      \"quote\": \"\"\n    },\n    {\n      \"qid\": \"Q2\",\n      \"answer\": \"\",\n      \"quote\": \"\"\n    },\n    {\n      \"qid\": \"Q3\",\n      \"answer\": \"\",\n      \"quote\": \"\"\n    }\n  ]\n}\n\n### INSTRUCTION\nThe local solver is stalled. Provide a concise strategic hint or direction for the next iteration."
+    }
+  ],
+  "max_tokens": 400,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

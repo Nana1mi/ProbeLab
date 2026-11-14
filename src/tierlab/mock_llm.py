@@ -45,10 +45,14 @@ class MockLLMBackend:
         self.call_count += 1
         if target in ("cloud", "cloud_flagship"):
             self.cloud_call_count += 1
-            return self._generate_cloud(messages, max_tokens, task_class)
+            result = self._generate_cloud(messages, max_tokens, task_class)
         else:
             self.local_call_count += 1
-            return self._generate_local(messages, max_tokens, task_class)
+            result = self._generate_local(messages, max_tokens, task_class)
+        # Dry-run estimates only; real backends always use the provider's usage.
+        result.prompt_tokens = max(1, (sum(len(m.get('content', '')) for m in messages) + 2) // 3)
+        result.cached_tokens = 0
+        return result
 
     def _generate_cloud(
         self,

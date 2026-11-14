@@ -88,3 +88,23 @@ tierlab serve --host 127.0.0.1 --port 8000
 - `configs/models.yaml`：云端强模型、本地弱模型、可选小模型 API 地址、定价与单价占位。
 - `configs/default.yaml`：默认步数、时间上限与预算参数。
 - `configs/batch_experiment.yaml`：多任务 $\times$ 多策略 $\times$ 多种子批量实验矩阵。
+
+## 第三轮审阅与提示词检查
+
+实际请求样例、复现配置及六策略调用次数见
+[docs/prompt_samples/README.md](docs/prompt_samples/README.md)，修复与回归测试映射见
+[REVIEW.md](REVIEW.md)。
+
+```bash
+tierlab run --task paper --backend mock --seed 0 --dump-prompts
+```
+
+`--dump-prompts [目录]` 导出实际发给模型的消息和请求参数；不指定目录时，写入该次
+运行目录下的 `prompts/`。CLI 与报告同时显示云端/本地调用次数和停止原因。
+
+本地输出默认上限 2048 token，hint 默认 400；可用 `--local-max-tokens`、
+`--hint-max-tokens` 或 controller YAML 配置。代码任务默认允许 NumPy，计时交叉
+检查与最大加速比通过 `task_options.code` 配置。
+
+`configs/models.yaml` 的云端单价现在为 `null` 占位。使用 real 后端前必须按所选
+模型填写价格；缺失价格会在启动时直接报错。mock 使用合成计费，仅验证流程。

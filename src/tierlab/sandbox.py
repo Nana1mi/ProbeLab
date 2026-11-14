@@ -8,6 +8,8 @@ Implements sandbox execution caching by candidate hash per Item #14.
 from __future__ import annotations
 
 import hashlib
+import json
+from contextvars import ContextVar
 import os
 import shutil
 import subprocess
@@ -32,14 +34,21 @@ class SandboxExecutionResult(BaseModel):
 
 
 _SANDBOX_EXECUTION_CACHE: dict[str, SandboxExecutionResult] = {}
+_RUN_CACHE: ContextVar[dict[str, SandboxExecutionResult] | None] = ContextVar('sandbox_run_cache', default=None)
 
 
 def get_sandbox_cache() -> dict[str, SandboxExecutionResult]:
-    return _SANDBOX_EXECUTION_CACHE
+    cache = _RUN_CACHE.get()
+    return cache if cache is not None else _SANDBOX_EXECUTION_CACHE
 
 
 def clear_sandbox_cache() -> None:
-    _SANDBOX_EXECUTION_CACHE.clear()
+    get_sandbox_cache().clear()
+
+
+def start_sandbox_run() -> None:
+    """Fresh cache for this async run, including concurrently served experiments."""
+    _RUN_CACHE.set({})
 
 
 def get_safe_subprocess_env() -> dict[str, str]:
@@ -83,10 +92,12 @@ def execute_in_sandbox(
     """
     cache_key = ""
     if use_cache:
-        raw_key = f"{code}:{runner_script}:{timeout_s}:{args}"
+        raw_key = json.dumps([code, entry_filename, runner_script, timeout_s, args,
+                              sorted((k, hashlib.sha256(v.encode('utf-8') if isinstance(v, str) else v).hexdigest())
+                                     for k, v in (extra_files or {}).items())])
         cache_key = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
-        if cache_key in _SANDBOX_EXECUTION_CACHE:
-            return _SANDBOX_EXECUTION_CACHE[cache_key]
+        if cache_key in get_sandbox_cache():
+            return get_sandbox_cache()[cache_key]
 
     temp_dir = tempfile.mkdtemp(prefix="tierlab_sandbox_")
     temp_path = Path(temp_dir)
@@ -162,7 +173,7 @@ def execute_in_sandbox(
             )
 
         if use_cache and cache_key:
-            _SANDBOX_EXECUTION_CACHE[cache_key] = res
+            get_sandbox_cache()[cache_key] = res
         return res
     finally:
         try:

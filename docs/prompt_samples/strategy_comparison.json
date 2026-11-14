@@ -1,0 +1,938 @@
+[
+  {
+    "task": "math",
+    "run": "math_tierlab_s0_1794633270910374700",
+    "policy": "tierlab",
+    "seed": 0,
+    "config_hash": "55da04f1be",
+    "total_steps": 12,
+    "final_score": 0.8748,
+    "total_cloud_cny": 0.005076,
+    "total_gpu_s": 0.02,
+    "total_gpu_cny": 1.2e-05,
+    "total_wall_s": 0.72,
+    "total_gpu_lease_cny": 0.000434,
+    "total_verify_s": 0.516,
+    "total_cloud_tokens": 1593,
+    "ba_auc": 0.8748,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.00139,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.003686,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 2,
+    "local_calls": 11,
+    "stop_reason": "consultation_ladder_exhausted"
+  },
+  {
+    "task": "math",
+    "run": "math_all_cloud_s0_1794633271712097100",
+    "policy": "all_cloud",
+    "seed": 0,
+    "config_hash": "e39a9f7e61",
+    "total_steps": 7,
+    "final_score": 0.8653,
+    "total_cloud_cny": 0.018328,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 0.06,
+    "total_gpu_lease_cny": 3.8e-05,
+    "total_verify_s": 0.059,
+    "total_cloud_tokens": 4964,
+    "ba_auc": 0.8652,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 5,
+    "local_calls": 0,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "math",
+    "run": "math_all_local_s0_1794633271840725200",
+    "policy": "all_local",
+    "seed": 0,
+    "config_hash": "4d69527f09",
+    "total_steps": 14,
+    "final_score": 0.8748,
+    "total_cloud_cny": 0.0,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 1e-06,
+    "total_wall_s": 0.78,
+    "total_gpu_lease_cny": 0.000465,
+    "total_verify_s": 0.749,
+    "total_cloud_tokens": 0,
+    "ba_auc": 0.8748,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 0,
+    "local_calls": 12,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "math",
+    "run": "math_cascade_s0_1794633272686765300",
+    "policy": "cascade",
+    "seed": 0,
+    "config_hash": "9f1f6f8d27",
+    "total_steps": 14,
+    "final_score": 0.8748,
+    "total_cloud_cny": 0.003606,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 1e-06,
+    "total_wall_s": 0.75,
+    "total_gpu_lease_cny": 0.000453,
+    "total_verify_s": 0.739,
+    "total_cloud_tokens": 963,
+    "ba_auc": 0.8748,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.003606,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 1,
+    "local_calls": 11,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "math",
+    "run": "math_static_split_s0_1794633273520197600",
+    "policy": "static_split",
+    "seed": 0,
+    "config_hash": "d900e09aa6",
+    "total_steps": 15,
+    "final_score": 0.8748,
+    "total_cloud_cny": 0.002876,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 1e-06,
+    "total_wall_s": 0.79,
+    "total_gpu_lease_cny": 0.000474,
+    "total_verify_s": 0.772,
+    "total_cloud_tokens": 598,
+    "ba_auc": 0.8743,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 1,
+    "local_calls": 12,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "math",
+    "run": "math_no_advice_retry_s0_1794633274385346700",
+    "policy": "no_advice_retry",
+    "seed": 0,
+    "config_hash": "e2e0235c90",
+    "total_steps": 14,
+    "final_score": 0.8748,
+    "total_cloud_cny": 0.0,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 1e-06,
+    "total_wall_s": 0.71,
+    "total_gpu_lease_cny": 0.000423,
+    "total_verify_s": 0.688,
+    "total_cloud_tokens": 0,
+    "ba_auc": 0.8748,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 0,
+    "local_calls": 12,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "code",
+    "run": "code_tierlab_s0_1794633275169778000",
+    "policy": "tierlab",
+    "seed": 0,
+    "config_hash": "55da04f1be",
+    "total_steps": 4,
+    "final_score": 1.5038,
+    "total_cloud_cny": 0.006178,
+    "total_gpu_s": 0.01,
+    "total_gpu_cny": 4e-06,
+    "total_wall_s": 3.4,
+    "total_gpu_lease_cny": 0.00204,
+    "total_verify_s": 3.382,
+    "total_cloud_tokens": 2144,
+    "ba_auc": 1.5021,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.00172,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 1,
+        "total_delta": 1.2504,
+        "total_cost_cny": 0.004458,
+        "roi_delta_per_cny": 280.48
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 2,
+    "local_calls": 3,
+    "stop_reason": "consultation_ladder_exhausted"
+  },
+  {
+    "task": "code",
+    "run": "code_all_cloud_s0_1794633281216182700",
+    "policy": "all_cloud",
+    "seed": 0,
+    "config_hash": "e39a9f7e61",
+    "total_steps": 7,
+    "final_score": 1.3323,
+    "total_cloud_cny": 0.020244,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 2.95,
+    "total_gpu_lease_cny": 0.001772,
+    "total_verify_s": 2.928,
+    "total_cloud_tokens": 5922,
+    "ba_auc": 1.3314,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 5,
+    "local_calls": 0,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "code",
+    "run": "code_all_local_s0_1794633286745700500",
+    "policy": "all_local",
+    "seed": 0,
+    "config_hash": "4d69527f09",
+    "total_steps": 9,
+    "final_score": 1.2577,
+    "total_cloud_cny": 0.0,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 3.16,
+    "total_gpu_lease_cny": 0.001898,
+    "total_verify_s": 3.153,
+    "total_cloud_tokens": 0,
+    "ba_auc": 1.2577,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 6,
+    "cloud_calls": 0,
+    "local_calls": 7,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "code",
+    "run": "code_cascade_s0_1794633292466337800",
+    "policy": "cascade",
+    "seed": 0,
+    "config_hash": "9f1f6f8d27",
+    "total_steps": 9,
+    "final_score": 1.3589,
+    "total_cloud_cny": 0.004058,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 3.24,
+    "total_gpu_lease_cny": 0.001942,
+    "total_verify_s": 3.225,
+    "total_cloud_tokens": 1189,
+    "ba_auc": 1.359,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.004058,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 6,
+    "cloud_calls": 1,
+    "local_calls": 6,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "code",
+    "run": "code_static_split_s0_1794633298451033500",
+    "policy": "static_split",
+    "seed": 0,
+    "config_hash": "d900e09aa6",
+    "total_steps": 10,
+    "final_score": 1.3559,
+    "total_cloud_cny": 0.003028,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 3.09,
+    "total_gpu_lease_cny": 0.001857,
+    "total_verify_s": 3.078,
+    "total_cloud_tokens": 674,
+    "ba_auc": 1.3551,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 6,
+    "cloud_calls": 1,
+    "local_calls": 7,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "code",
+    "run": "code_no_advice_retry_s0_1794633304410745700",
+    "policy": "no_advice_retry",
+    "seed": 0,
+    "config_hash": "e2e0235c90",
+    "total_steps": 9,
+    "final_score": 1.2865,
+    "total_cloud_cny": 0.0,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 3.0,
+    "total_gpu_lease_cny": 0.001798,
+    "total_verify_s": 2.979,
+    "total_cloud_tokens": 0,
+    "ba_auc": 1.2865,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 6,
+    "cloud_calls": 0,
+    "local_calls": 7,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "paper",
+    "run": "paper_tierlab_s0_1794633310070403900",
+    "policy": "tierlab",
+    "seed": 0,
+    "config_hash": "55da04f1be",
+    "total_steps": 5,
+    "final_score": 1.0,
+    "total_cloud_cny": 0.006578,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 3e-06,
+    "total_wall_s": 0.02,
+    "total_gpu_lease_cny": 1e-05,
+    "total_verify_s": 0.002,
+    "total_cloud_tokens": 2344,
+    "ba_auc": 0.9997,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 1,
+        "verified_improvements": 1,
+        "total_delta": 1.0,
+        "total_cost_cny": 0.001434,
+        "roi_delta_per_cny": 697.35
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.005144,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 1,
+    "cloud_calls": 2,
+    "local_calls": 4,
+    "stop_reason": "consultation_ladder_exhausted"
+  },
+  {
+    "task": "paper",
+    "run": "paper_all_cloud_s0_1794633310105167100",
+    "policy": "all_cloud",
+    "seed": 0,
+    "config_hash": "e39a9f7e61",
+    "total_steps": 7,
+    "final_score": 1.0,
+    "total_cloud_cny": 0.024798,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 0.02,
+    "total_gpu_lease_cny": 9e-06,
+    "total_verify_s": 0.002,
+    "total_cloud_tokens": 8199,
+    "ba_auc": 0.9991,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 5,
+    "local_calls": 0,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "paper",
+    "run": "paper_all_local_s0_1794633310133688800",
+    "policy": "all_local",
+    "seed": 0,
+    "config_hash": "4d69527f09",
+    "total_steps": 8,
+    "final_score": 1.0,
+    "total_cloud_cny": 0.0,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 1e-06,
+    "total_wall_s": 0.02,
+    "total_gpu_lease_cny": 1.1e-05,
+    "total_verify_s": 0.002,
+    "total_cloud_tokens": 0,
+    "ba_auc": 1.0,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 0,
+    "local_calls": 6,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "paper",
+    "run": "paper_cascade_s0_1794633310167690400",
+    "policy": "cascade",
+    "seed": 0,
+    "config_hash": "9f1f6f8d27",
+    "total_steps": 8,
+    "final_score": 1.0,
+    "total_cloud_cny": 0.005094,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 0.02,
+    "total_gpu_lease_cny": 1.1e-05,
+    "total_verify_s": 0.002,
+    "total_cloud_tokens": 1707,
+    "ba_auc": 1.0,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.005094,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 1,
+    "local_calls": 5,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "paper",
+    "run": "paper_static_split_s0_1794633310217610100",
+    "policy": "static_split",
+    "seed": 0,
+    "config_hash": "d900e09aa6",
+    "total_steps": 9,
+    "final_score": 1.0,
+    "total_cloud_cny": 0.002838,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 0.02,
+    "total_gpu_lease_cny": 1.4e-05,
+    "total_verify_s": 0.002,
+    "total_cloud_tokens": 579,
+    "ba_auc": 0.9994,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 1,
+    "local_calls": 6,
+    "stop_reason": "consecutive_stagnation_stopped"
+  },
+  {
+    "task": "paper",
+    "run": "paper_no_advice_retry_s0_1794633310252118600",
+    "policy": "no_advice_retry",
+    "seed": 0,
+    "config_hash": "e2e0235c90",
+    "total_steps": 8,
+    "final_score": 1.0,
+    "total_cloud_cny": 0.0,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 0.02,
+    "total_gpu_lease_cny": 1.1e-05,
+    "total_verify_s": 0.002,
+    "total_cloud_tokens": 0,
+    "ba_auc": 1.0,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 4,
+    "cloud_calls": 0,
+    "local_calls": 6,
+    "stop_reason": "consecutive_stagnation_stopped"
+  }
+]

@@ -212,6 +212,17 @@ class PaperL1Verifier(Verifier):
                     failure_signature="paper/quote_unmatched",
                 )
 
+            gold_paragraph = q_info.get('gold_paragraph')
+            if gold_paragraph is not None and para_idx != gold_paragraph:
+                return VerificationResult(valid=False, feedback=f"Quote for {qid} does not support this question.",
+                                          failure_signature='paper/wrong_paragraph',
+                                          evidence={'qid': qid}, elapsed_s=time.perf_counter() - t0)
+            norm_answer = normalize_whitespace(str(ans.get('answer', ''))).casefold()
+            if not norm_answer or norm_answer not in normalize_whitespace(quote).casefold():
+                return VerificationResult(valid=False, feedback=f"Answer for {qid} must occur in its cited quote.",
+                                          failure_signature='paper/answer_not_in_quote',
+                                          evidence={'qid': qid}, elapsed_s=time.perf_counter() - t0)
+
             citations.append({
                 "qid": qid,
                 "source_file": fname,
@@ -392,7 +403,13 @@ class PaperQATask(ResearchTask):
     def build_ladder(self) -> list[Verifier]:
         papers_dir = self._get_papers_dir()
         questions = self._load_questions()
-        dev_questions = [q for q in questions if q.get("qid") in ("Q1", "Q2")] or questions[:2]
+        if any('split' in q for q in questions):
+            dev_questions = [q for q in questions if q.get('split') == 'dev']
+            if not dev_questions or not any(q.get('split') == 'held_out' for q in questions):
+                raise ValueError('Paper questions need nonempty dev and held_out groups')
+        else:
+            # Legacy custom fixtures; bundled experiments always use explicit split metadata.
+            dev_questions = [q for q in questions if q.get("qid") in ("Q1", "Q2")] or questions[:2]
         return [
             PaperL0Verifier(),
             PaperL1Verifier(papers_dir=papers_dir, questions=dev_questions, min_quote_chars=self.min_quote_chars),
@@ -422,7 +439,7 @@ class PaperQATask(ResearchTask):
         last_sig = "none"
         last_msg = "none"
         if recent_results:
-            failed = [r for r in recent_results if not r.valid]
+            failed = [r for r in recent_results if not r.valid or r.failure_signature]
             if failed:
                 last_sig = failed[-1].failure_signature or "unknown"
                 last_msg = failed[-1].feedback
@@ -447,23 +464,9 @@ class PaperQATask(ResearchTask):
         return "paper/success"
 
     def initial_candidate(self) -> Candidate:
-        content = json.dumps(
-            {
-                "answers": [
-                    {
-                        "qid": "Q1",
-                        "answer": "4.2 GB",
-                        "quote": "Under full load, the system reached a peak memory usage of 4.2 GB.",
-                    },
-                    {
-                        "qid": "Q2",
-                        "answer": "UnknownBaseline",
-                        "quote": "We compare our approach against the SimpleGreedy baseline.",
-                    },
-                ]
-            },
-            indent=2,
-        )
+        content = json.dumps({'answers': [
+            {'qid': q['qid'], 'answer': '', 'quote': ''} for q in self._load_questions()
+        ]}, indent=2)
         # Item #5: No hardcoded score in metadata; computed via run_ladder
         return Candidate(
             id="cand_paper_initial",
@@ -475,12 +478,13 @@ class PaperQATask(ResearchTask):
         self,
         current_best: Candidate | None = None,
         rung: str | None = None,
+        recent_results: list[VerificationResult] | None = None,
     ) -> str:
         best_content = current_best.content if current_best else self.initial_candidate().content
         if rung == "hint":
-            card = self.state_card(current_best, [])
             truncated_cand = best_content[:400] + ("..." if len(best_content) > 400 else "")
-            return f"STATE CARD:\n{card}\n\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
+            card = self.state_card(current_best, recent_results or [])
+            return f"STATE CARD:\n{card}\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
 
         papers_dir = self._get_papers_dir()
         paper_texts = []
@@ -488,14 +492,14 @@ class PaperQATask(ResearchTask):
             paper_texts.append(f"--- PAPER FILE: {p_file.name} ---\n{p_file.read_text(encoding='utf-8')}")
         all_papers_str = "\n\n".join(paper_texts)
 
-        questions = self._load_questions()
+        questions = [{key: q[key] for key in ('qid', 'type', 'question')} for q in self._load_questions()]
         q_formatted = json.dumps(questions, indent=2, ensure_ascii=False)
 
         return (
             f"TASK SPECIFICATION:\n"
             f"- Goal: {self.goal}\n"
             f"- Return Format: Valid JSON with root object having 'answers' list of objects: [{{'qid': '...', 'answer': '...', 'quote': '...'}}]\n"
-            f"- Quote Requirements: Verbatim substring match from the paper text of length >= {self.min_quote_chars} chars.\n"
+            f"- Quote Requirements: A relevant verbatim substring from the paragraph supporting each question, length >= {self.min_quote_chars} chars; the normalized answer must occur in that quote.\n"
             f"- Execution timeout limit: 10.0 seconds\n\n"
             f"FULL SOURCE PAPERS:\n{all_papers_str}\n\n"
             f"ALL QUESTIONS TO ANSWER:\n{q_formatted}\n\n"

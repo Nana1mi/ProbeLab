@@ -5,7 +5,9 @@
     "question": "What is the peak memory usage reported? [占位示例 / PLACEHOLDER SYNTHETIC EXAMPLE]",
     "target_answer": "4.2 GB",
     "source_file": "sample_paper_1.txt",
-    "is_placeholder_example": true
+    "is_placeholder_example": true,
+    "gold_paragraph": 3,
+    "split": "dev"
   },
   {
     "qid": "Q2",
@@ -13,7 +15,9 @@
     "question": "What baseline algorithm is the approach compared against? [占位示例 / PLACEHOLDER SYNTHETIC EXAMPLE]",
     "target_answer": "SimpleGreedy",
     "source_file": "sample_paper_1.txt",
-    "is_placeholder_example": true
+    "is_placeholder_example": true,
+    "gold_paragraph": 2,
+    "split": "dev"
   },
   {
     "qid": "Q3",
@@ -21,6 +25,8 @@
     "question": "What two mechanisms govern overall efficiency in the discussion? [占位示例 / PLACEHOLDER SYNTHETIC EXAMPLE]",
     "target_answer": "local widening and escalation",
     "source_file": "sample_paper_1.txt",
-    "is_placeholder_example": true
+    "is_placeholder_example": true,
+    "gold_paragraph": 4,
+    "split": "held_out"
   }
 ]

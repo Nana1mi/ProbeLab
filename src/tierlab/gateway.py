@@ -13,8 +13,11 @@ Enforces:
 from __future__ import annotations
 
 import asyncio
+import copy
+import json
 import os
 import time
+from pathlib import Path
 from typing import Any
 from pydantic import BaseModel, Field
 
@@ -53,12 +56,28 @@ class ModelGateway:
         backend: str = "mock",
         weak_target: str = "local",  # "local" or "cloud_small" (#8)
         mock_backend: MockLLMBackend | None = None,
+        prompt_dump_dir: str | Path | None = None,
     ) -> None:
-        self.config = models_config or load_models_config()
+        self.config = (models_config or load_models_config()).model_copy(deep=True)
         self.budget = budget or Budget()
         self.backend = backend.lower().strip()
         self.weak_target = weak_target.lower().strip()
         self.mock_backend = mock_backend or MockLLMBackend()
+        self.prompt_dump_dir = Path(prompt_dump_dir) if prompt_dump_dir else None
+        self.request_count = 0
+        for label in ('cloud_model', 'local_model', 'cloud_small_model'):
+            endpoint = getattr(self.config, label)
+            if endpoint is None:
+                continue
+            missing = any(v is None for v in endpoint.pricing.model_dump().values())
+            if missing and self.backend == 'real':
+                raise ConfigurationError(f"Configure explicit pricing for {label}; null prices are placeholders.")
+            if missing:
+                # Mock prices are synthetic, never a claim about a provider's current rates.
+                defaults = (0.0, 0.0, 0.0) if label == 'local_model' else (2.0, 0.5, 8.0)
+                for field, value in zip(PricingConfig.model_fields, defaults):
+                    if getattr(endpoint.pricing, field) is None:
+                        setattr(endpoint.pricing, field, value)
 
         self.spent_cloud_cny: float = 0.0
         self.reserved_cloud_cny: float = 0.0
@@ -104,6 +123,8 @@ class ModelGateway:
         cached_tokens: int,
         completion_tokens: int,
     ) -> float:
+        if any(v is None for v in pricing.model_dump().values()):
+            raise ConfigurationError('Explicit token pricing is required')
         uncached_prompt = max(0, prompt_tokens - cached_tokens)
         cost = (
             (uncached_prompt * pricing.prompt_cny_per_m / 1_000_000.0)
@@ -178,6 +199,7 @@ class ModelGateway:
     ) -> GatewayCallRecord:
         endpoint, resolved_target = self._resolve_endpoint(target)
         is_cloud_billing = resolved_target in ("cloud", "cloud_small")
+        max_tokens = max_tokens if max_tokens is not None else endpoint.max_tokens
 
         # 1. HARD BUDGET CAP ENFORCEMENT
         if is_cloud_billing:
@@ -197,6 +219,17 @@ class ModelGateway:
                 )
 
         # 2. DISPATCH
+        self.request_count += 1
+        if self.prompt_dump_dir:
+            self.prompt_dump_dir.mkdir(parents=True, exist_ok=True)
+            kind = ('local' if target in ('local', 'weak', 'cloud_small') else
+                    'hint' if 'strategic hint' in messages[0].get('content', '').lower() else 'solve')
+            request = {'task': task_class, 'kind': kind, 'target': resolved_target,
+                       'backend': self.backend, 'model': endpoint.name, 'messages': messages,
+                       'max_tokens': max_tokens, 'temperature': temperature,
+                       'extra_body': self._merge_extra_body(endpoint.extra_body, extra_body or {})}
+            (self.prompt_dump_dir / f'{self.request_count:03d}_{task_class}_{kind}.json').write_text(
+                json.dumps(request, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         t0 = time.perf_counter()
         if self.backend == "mock":
             mock_res = self.mock_backend.generate(
@@ -239,9 +272,20 @@ class ModelGateway:
             cost_cny=cost,
             wall_clock_s=wall_clock_s,
             content=content,
+            extra={'failure_signature': 'model/empty_response'} if not content.strip() else {},
         )
         self.call_history.append(record)
         return record
+
+    @staticmethod
+    def _merge_extra_body(base: dict, overrides: dict) -> dict:
+        merged = copy.deepcopy(base)
+        for key, value in overrides.items():
+            if isinstance(value, dict) and isinstance(merged.get(key), dict):
+                merged[key] = ModelGateway._merge_extra_body(merged[key], value)
+            else:
+                merged[key] = copy.deepcopy(value)
+        return merged
 
     async def _call_real(
         self,
@@ -270,8 +314,9 @@ class ModelGateway:
         if max_tokens is not None:
             call_kwargs["max_tokens"] = max_tokens
 
-        if endpoint.supports_guided_decoding and extra_body:
-            call_kwargs["extra_body"] = extra_body
+        merged_body = self._merge_extra_body(endpoint.extra_body, extra_body or {})
+        if merged_body:
+            call_kwargs["extra_body"] = merged_body
 
         t0 = time.perf_counter()
         retries = endpoint.max_retries

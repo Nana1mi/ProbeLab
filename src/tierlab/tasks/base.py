@@ -87,6 +87,7 @@ class ResearchTask(ABC):
         self,
         current_best: Candidate | None = None,
         rung: str | None = None,
+        recent_results: list[VerificationResult] | None = None,
     ) -> str:
         """Provide complete prompt context for the model (Item #1).
         
@@ -127,6 +128,9 @@ class ResearchTask(ABC):
         If a prerequisite constraint fails, stops execution of subsequent verifiers.
         """
         results: list[VerificationResult] = []
+        if not candidate.content.strip():
+            return [VerificationResult(valid=False, failure_signature="model/empty_response",
+                                       feedback="Model returned no candidate content; retry or escalate.")]
         for verifier in self.ladder:
             res = verifier.verify(candidate)
             results.append(res)
