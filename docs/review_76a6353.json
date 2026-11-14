@@ -1,0 +1,59 @@
+{
+  "reviewed_commit": "76a635317ecfa874f68ed196177fbecdfb93fbbb",
+  "date": "2026-11-14",
+  "original_suite": {
+    "passed": 98,
+    "warnings": 1,
+    "elapsed_s": 35.57
+  },
+  "suite_with_smoke_tests": {
+    "passed": 101,
+    "warnings": 1,
+    "elapsed_s": 33.68
+  },
+  "adversarial_probes": {
+    "clock_patch": {
+      "dev": {
+        "valid": false,
+        "score": 0.0,
+        "signature": "code/suspicious_timing"
+      },
+      "final": {
+        "valid": false,
+        "score": 0.0,
+        "signature": "code/suspicious_timing"
+      }
+    },
+    "json_dumps_patch": {
+      "dev": {
+        "valid": true,
+        "score": 30.2877,
+        "signature": null
+      },
+      "final": {
+        "valid": true,
+        "score": 25.4718,
+        "signature": null
+      }
+    }
+  },
+  "cloud_hint_probe": {
+    "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+    "enable_thinking": false,
+    "max_tokens": 400,
+    "http_status": 200,
+    "latency_s": 5.3,
+    "prompt_tokens": 539,
+    "completion_tokens": 363,
+    "reasoning_tokens": 0,
+    "calculated_cny": 0.003982
+  },
+  "hardware_verified": {
+    "gpu": "NVIDIA GeForce RTX 4090 D",
+    "vram_mib": 24564,
+    "driver": "550.90.07",
+    "cuda_reported": "12.4"
+  },
+  "model_smoke_completed": false,
+  "remaining_blocker": "SSH connectivity lost during dependency installation; no local-model outputs or throughput results yet."
+}

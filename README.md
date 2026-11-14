@@ -108,3 +108,20 @@ tierlab run --task paper --backend mock --seed 0 --dump-prompts
 
 `configs/models.yaml` 的云端单价现在为 `null` 占位。使用 real 后端前必须按所选
 模型填写价格；缺失价格会在启动时直接报错。mock 使用合成计费，仅验证流程。
+
+## 已知评测局限与硬件冒烟
+
+代码任务允许 NumPy 时，模型可能一次就获得数十倍加速，后续提升空间有限。
+正式策略对比应预先固定库约束，或另建朴素 NumPy 基线；当前冒烟仅验证服务和输出能否工作。
+
+计时校验能拒绝直接改写 `time.perf_counter` 的候选，但普通 Python 子进程内的
+输出协议仍可被篡改。例如改写 `json.dumps` 谎报较小耗时，可能绕过父进程容差
+和 50 倍上限。当前结果不能作为任意恶意候选下的可信性能证明。
+
+```bash
+python smoke_vllm.py --model local-vllm-model --n 8
+```
+
+脚本使用导出的真实 local 提示词，保存原始回复、逐级验证结果、失败签名、思考泄漏、
+截断次数，以及 K=1/2/4 的吞吐和 P95/最大延迟。输出默认在 `smoke_outputs/`，
+可用 `--output-dir` 指定。API 单次失败不会丢失同批其他回复。

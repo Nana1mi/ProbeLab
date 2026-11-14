@@ -28,3 +28,6 @@ htmlcov/
 # Local experiment runs (keep placeholder structure)
 runs/*
 !runs/.gitkeep
+
+# Raw real-model responses and hardware smoke logs
+smoke_outputs/
