@@ -3,11 +3,14 @@
 Per amended specifications:
   - #2: VerificationResult(valid, score, feedback, evidence, elapsed_s)
   - #3: Dev feedback separate from final hidden evaluation
+  - #9: Reference and candidate execute in independent subprocesses; fresh inputs per run;
+        reference execution >= 0.2s; score reports direct uncapped speedup.
 """
 
 from __future__ import annotations
 
 import json
+import statistics
 import time
 from pathlib import Path
 from typing import Any
@@ -56,129 +59,132 @@ def topk_cosine_sim(A, Q, k):
     return results
 '''
 
-DEV_RUNNER_SCRIPT = '''
+REF_RUNNER_SCRIPT = '''
+import argparse
 import json
+import random
 import sys
 import time
-import random
 
 try:
-    import reference
+    from reference import topk_cosine_sim
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", type=str, default="benchmark")
+    parser.add_argument("--seed", type=int, default=42)
+    args = parser.parse_args()
+
+    rng = random.Random(args.seed)
+    if args.mode == "visible":
+        A = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        Q = [[1.0, 0.0]]
+        k = 1
+    elif args.mode == "hidden":
+        M, N, D, k = 30, 8, 12, 3
+        A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
+        Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
+    else:  # benchmark with >= 0.2s runtime scale (#9)
+        M, N, D, k = 800, 100, 64, 5
+        A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
+        Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
+
+    t0 = time.perf_counter()
+    ans = topk_cosine_sim(A, Q, k)
+    elapsed = time.perf_counter() - t0
+
+    print(json.dumps({
+        "status": "ok",
+        "ans": ans,
+        "elapsed_s": elapsed
+    }))
+except Exception as e:
+    print(json.dumps({"status": "exception", "message": f"{type(e).__name__}: {str(e)}"}))
+'''
+
+CAND_RUNNER_SCRIPT = '''
+import argparse
+import json
+import random
+import sys
+import time
+
+try:
     import solution
 
     if not hasattr(solution, "topk_cosine_sim"):
         print(json.dumps({"status": "error", "message": "Module does not define topk_cosine_sim"}))
         sys.exit(0)
 
-    # 1. Visible test
-    A_vis = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
-    Q_vis = [[1.0, 0.0]]
-    ref_vis = reference.topk_cosine_sim(A_vis, Q_vis, 1)
-    cand_vis = solution.topk_cosine_sim(A_vis, Q_vis, 1)
-    if ref_vis != cand_vis:
-        print(json.dumps({
-            "status": "visible_fail",
-            "message": f"Visible test failed: expected {ref_vis}, got {cand_vis}"
-        }))
-        sys.exit(0)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", type=str, default="benchmark")
+    parser.add_argument("--seed", type=int, default=42)
+    args = parser.parse_args()
 
-    # 2. Dev hidden tests
-    rng = random.Random(42)
-    M, N, D, k = 30, 8, 12, 3
-    A_hid = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
-    Q_hid = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
+    rng = random.Random(args.seed)
+    if args.mode == "visible":
+        A = [[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        Q = [[1.0, 0.0]]
+        k = 1
+    elif args.mode == "hidden":
+        M, N, D, k = 30, 8, 12, 3
+        A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
+        Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
+    else:  # benchmark with >= 0.2s runtime scale (#9)
+        M, N, D, k = 800, 100, 64, 5
+        A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
+        Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
 
-    ref_hid = reference.topk_cosine_sim(A_hid, Q_hid, k)
-    cand_hid = solution.topk_cosine_sim(A_hid, Q_hid, k)
-    if ref_hid != cand_hid:
-        print(json.dumps({
-            "status": "hidden_fail",
-            "message": "Candidate output does not match reference output on dev hidden inputs"
-        }))
-        sys.exit(0)
-
-    # 3. Dev benchmark timing (interleaved runs)
-    M_bm, N_bm, D_bm, k_bm = 80, 25, 32, 5
-    A_bm = [[rng.uniform(-1.0, 1.0) for _ in range(D_bm)] for _ in range(M_bm)]
-    Q_bm = [[rng.uniform(-1.0, 1.0) for _ in range(D_bm)] for _ in range(N_bm)]
-
-    # Warmup
-    _ = reference.topk_cosine_sim(A_bm, Q_bm, k_bm)
-    _ = solution.topk_cosine_sim(A_bm, Q_bm, k_bm)
-
-    ref_times = []
-    cand_times = []
-    for _ in range(5):
-        t0 = time.perf_counter()
-        _ = reference.topk_cosine_sim(A_bm, Q_bm, k_bm)
-        ref_times.append(time.perf_counter() - t0)
-
-        t1 = time.perf_counter()
-        _ = solution.topk_cosine_sim(A_bm, Q_bm, k_bm)
-        cand_times.append(time.perf_counter() - t1)
-
-    ref_times.sort()
-    cand_times.sort()
-    ref_med = ref_times[len(ref_times) // 2]
-    cand_med = cand_times[len(cand_times) // 2]
-    speedup = ref_med / max(cand_med, 1e-9)
+    t0 = time.perf_counter()
+    ans = solution.topk_cosine_sim(A, Q, k)
+    elapsed = time.perf_counter() - t0
 
     print(json.dumps({
         "status": "ok",
-        "ref_med_s": ref_med,
-        "cand_med_s": cand_med,
-        "speedup": round(speedup, 4)
+        "ans": ans,
+        "elapsed_s": elapsed
     }))
 except Exception as e:
     print(json.dumps({"status": "exception", "message": f"{type(e).__name__}: {str(e)}"}))
 '''
 
-FINAL_EVAL_RUNNER_SCRIPT = '''
-import json
-import sys
-import time
-import random
 
-try:
-    import reference
-    import solution
+def run_reference_sandbox(mode: str = "benchmark", seed: int = 42, timeout_s: float = 30.0) -> dict[str, Any]:
+    """Execute reference implementation in an independent subprocess (#9)."""
+    res = execute_in_sandbox(
+        code="",
+        entry_filename="main.py",
+        runner_script=REF_RUNNER_SCRIPT,
+        extra_files={"reference.py": REFERENCE_CODE},
+        timeout_s=timeout_s,
+        args=["--mode", mode, "--seed", str(seed)],
+    )
+    if res.timed_out:
+        return {"status": "timeout", "message": "Reference timed out"}
+    if res.returncode != 0:
+        return {"status": "crash", "message": res.stderr}
+    try:
+        return json.loads(res.stdout.strip())
+    except Exception:
+        return {"status": "error", "message": f"Invalid json: {res.stdout}"}
 
-    rng = random.Random(9999)  # Held-out hidden evaluation seed (#3)
-    M, N, D, k = 100, 30, 32, 5
-    A = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(M)]
-    Q = [[rng.uniform(-1.0, 1.0) for _ in range(D)] for _ in range(N)]
 
-    ref_ans = reference.topk_cosine_sim(A, Q, k)
-    cand_ans = solution.topk_cosine_sim(A, Q, k)
-    if ref_ans != cand_ans:
-        print(json.dumps({"status": "eval_fail", "message": "Failed hidden evaluation correctness"}))
-        sys.exit(0)
-
-    ref_times, cand_times = [], []
-    for _ in range(5):
-        t0 = time.perf_counter()
-        _ = reference.topk_cosine_sim(A, Q, k)
-        ref_times.append(time.perf_counter() - t0)
-
-        t1 = time.perf_counter()
-        _ = solution.topk_cosine_sim(A, Q, k)
-        cand_times.append(time.perf_counter() - t1)
-
-    ref_times.sort()
-    cand_times.sort()
-    ref_med = ref_times[len(ref_times) // 2]
-    cand_med = cand_times[len(cand_times) // 2]
-    speedup = ref_med / max(cand_med, 1e-9)
-
-    print(json.dumps({
-        "status": "ok",
-        "final_speedup": round(speedup, 4),
-        "ref_med_s": ref_med,
-        "cand_med_s": cand_med
-    }))
-except Exception as e:
-    print(json.dumps({"status": "exception", "message": str(e)}))
-'''
+def run_candidate_sandbox(candidate_code: str, mode: str = "benchmark", seed: int = 42, timeout_s: float = 30.0) -> dict[str, Any]:
+    """Execute candidate implementation in an independent subprocess (#9)."""
+    res = execute_in_sandbox(
+        code=candidate_code,
+        entry_filename="solution.py",
+        runner_script=CAND_RUNNER_SCRIPT,
+        timeout_s=timeout_s,
+        args=["--mode", mode, "--seed", str(seed)],
+    )
+    if res.timed_out:
+        return {"status": "timeout", "message": "Candidate timed out"}
+    if res.returncode != 0 and not res.stdout:
+        return {"status": "crash", "message": res.stderr}
+    try:
+        return json.loads(res.stdout.strip())
+    except Exception:
+        return {"status": "error", "message": f"Invalid json: {res.stdout}"}
 
 
 class CodeL0Verifier(Verifier):
@@ -188,16 +194,10 @@ class CodeL0Verifier(Verifier):
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
-        res = execute_in_sandbox(
-            code=candidate.content,
-            entry_filename="solution.py",
-            runner_script=DEV_RUNNER_SCRIPT,
-            extra_files={"reference.py": REFERENCE_CODE},
-            timeout_s=10.0,
-        )
+        data = run_candidate_sandbox(candidate.content, mode="visible", seed=0, timeout_s=10.0)
         elapsed = time.perf_counter() - t0
 
-        if res.timed_out:
+        if data.get("status") == "timeout":
             return VerificationResult(
                 valid=False,
                 score=0.0,
@@ -206,46 +206,38 @@ class CodeL0Verifier(Verifier):
                 elapsed_s=elapsed,
                 failure_signature="format/timeout",
             )
-        if res.returncode != 0 and not res.stdout:
+        if data.get("status") == "crash":
             return VerificationResult(
                 valid=False,
                 score=0.0,
-                feedback=f"Process crashed: {res.stderr[:200]}",
-                evidence={"stderr": res.stderr[:200]},
+                feedback=f"Process crashed: {data.get('message', '')[:200]}",
+                evidence=data,
                 elapsed_s=elapsed,
                 failure_signature="syntax/crash",
             )
-
-        try:
-            data = json.loads(res.stdout.strip())
-        except Exception:
+        if data.get("status") in ("error", "exception"):
+            msg = data.get("message", "")
+            sig = "format/output_parse_error" if "Invalid json" in msg else "syntax/runtime_error"
             return VerificationResult(
                 valid=False,
                 score=0.0,
-                feedback=f"Failed to parse runner JSON: {res.stdout[:150]}",
-                evidence={"stdout": res.stdout[:150]},
+                feedback=f"Candidate failed visible test setup: {msg}",
+                evidence=data,
                 elapsed_s=elapsed,
-                failure_signature="format/output_parse_error",
+                failure_signature=sig,
             )
 
-        if data.get("status") == "visible_fail":
+        # Compare visible test output against expected [[0]]
+        expected_ans = [[0]]
+        cand_ans = data.get("ans")
+        if cand_ans != expected_ans:
             return VerificationResult(
                 valid=False,
                 score=0.0,
-                feedback=data.get("message", "Visible test failed"),
-                evidence=data,
+                feedback=f"Visible test failed: expected {expected_ans}, got {cand_ans}",
+                evidence={"expected": expected_ans, "got": cand_ans},
                 elapsed_s=elapsed,
                 failure_signature="code/visible_test_failure",
-            )
-
-        if data.get("status") in ("error", "exception"):
-            return VerificationResult(
-                valid=False,
-                score=0.0,
-                feedback=data.get("message", "Exception in candidate execution"),
-                evidence=data,
-                elapsed_s=elapsed,
-                failure_signature="syntax/runtime_error",
             )
 
         return VerificationResult(
@@ -275,13 +267,26 @@ class CodeL1Verifier(Verifier):
                 failure_signature=l0.failure_signature,
             )
 
-        data = l0.evidence
-        if data.get("status") == "hidden_fail":
+        # Independent subprocesses for reference and candidate (#9)
+        ref_data = run_reference_sandbox(mode="hidden", seed=42, timeout_s=15.0)
+        cand_data = run_candidate_sandbox(candidate.content, mode="hidden", seed=42, timeout_s=15.0)
+
+        if ref_data.get("status") != "ok" or cand_data.get("status") != "ok":
             return VerificationResult(
                 valid=False,
                 score=0.0,
-                feedback=data.get("message", "Dev hidden test failed"),
-                evidence=data,
+                feedback=f"Hidden test execution failed: cand={cand_data.get('message')}, ref={ref_data.get('message')}",
+                evidence={"ref": ref_data, "cand": cand_data},
+                elapsed_s=time.perf_counter() - t0,
+                failure_signature="code/hidden_test_failure",
+            )
+
+        if ref_data.get("ans") != cand_data.get("ans"):
+            return VerificationResult(
+                valid=False,
+                score=0.0,
+                feedback="Candidate output does not match reference output on dev hidden inputs",
+                evidence={"ref_ans": ref_data.get("ans"), "cand_ans": cand_data.get("ans")},
                 elapsed_s=time.perf_counter() - t0,
                 failure_signature="code/hidden_test_failure",
             )
@@ -290,7 +295,7 @@ class CodeL1Verifier(Verifier):
             valid=True,
             score=0.5,
             feedback="Dev hidden input correctness test passed with reference equality",
-            evidence=data,
+            evidence={"status": "ok"},
             elapsed_s=time.perf_counter() - t0,
         )
 
@@ -300,7 +305,7 @@ class CodeL2Verifier(Verifier):
     name = "code_l2_speedup"
     is_expensive = True  # Benchmarking is declared expensive (#2)
 
-    def __init__(self, noise_threshold: float = 0.15) -> None:
+    def __init__(self, noise_threshold: float = 0.08) -> None:
         self.noise_threshold = noise_threshold
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
@@ -316,10 +321,31 @@ class CodeL2Verifier(Verifier):
                 failure_signature=l1.failure_signature,
             )
 
-        data = l1.evidence
-        speedup = float(data.get("speedup", 1.0))
-        ref_med = float(data.get("ref_med_s", 0.0))
-        cand_med = float(data.get("cand_med_s", 0.0))
+        # Benchmark: Separate subprocesses with fresh inputs per run (#9)
+        ref_times: list[float] = []
+        cand_times: list[float] = []
+
+        # Run 3 benchmark iterations with fresh random inputs
+        for iter_idx in range(3):
+            fresh_seed = 1000 + iter_idx * 17
+            ref_res = run_reference_sandbox(mode="benchmark", seed=fresh_seed, timeout_s=30.0)
+            cand_res = run_candidate_sandbox(candidate.content, mode="benchmark", seed=fresh_seed, timeout_s=30.0)
+
+            if ref_res.get("status") != "ok" or cand_res.get("status") != "ok":
+                return VerificationResult(
+                    valid=False,
+                    score=0.0,
+                    feedback="Benchmark execution failed in subprocess",
+                    evidence={"ref": ref_res, "cand": cand_res},
+                    elapsed_s=time.perf_counter() - t0,
+                    failure_signature="code/benchmark_runtime_error",
+                )
+            ref_times.append(float(ref_res["elapsed_s"]))
+            cand_times.append(float(cand_res["elapsed_s"]))
+
+        ref_med = statistics.median(ref_times)
+        cand_med = statistics.median(cand_times)
+        speedup = ref_med / max(cand_med, 1e-9)
 
         if speedup < (1.0 + self.noise_threshold):
             return VerificationResult(
@@ -327,26 +353,26 @@ class CodeL2Verifier(Verifier):
                 score=0.1,
                 feedback=f"Speedup {speedup:.2f}x is within noise threshold ({1.0 + self.noise_threshold:.2f}x)",
                 evidence={
-                    "speedup": speedup,
-                    "ref_med_s": ref_med,
-                    "cand_med_s": cand_med,
+                    "speedup": round(speedup, 4),
+                    "ref_med_s": round(ref_med, 4),
+                    "cand_med_s": round(cand_med, 4),
                     "significant": False,
                 },
                 elapsed_s=time.perf_counter() - t0,
                 failure_signature="code/insufficient_speedup",
             )
 
-        normalized_score = min(1.0, max(0.1, speedup / 6.0))
+        # Uncapped direct speedup report (#9)
+        score = round(speedup, 4)
         return VerificationResult(
             valid=True,
-            score=round(normalized_score, 4),
+            score=score,
             feedback=f"Verified speedup: {speedup:.2f}x (Candidate: {cand_med*1000:.1f}ms, Ref: {ref_med*1000:.1f}ms)",
             evidence={
-                "speedup": speedup,
-                "ref_med_s": ref_med,
-                "cand_med_s": cand_med,
+                "speedup": round(speedup, 4),
+                "ref_med_s": round(ref_med, 4),
+                "cand_med_s": round(cand_med, 4),
                 "significant": True,
-                "normalized_score": round(normalized_score, 4),
             },
             elapsed_s=time.perf_counter() - t0,
         )
@@ -359,33 +385,33 @@ class CodeFinalEvaluationVerifier(Verifier):
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
-        res = execute_in_sandbox(
-            code=candidate.content,
-            entry_filename="solution.py",
-            runner_script=FINAL_EVAL_RUNNER_SCRIPT,
-            extra_files={"reference.py": REFERENCE_CODE},
-            timeout_s=15.0,
-        )
+        held_out_seed = 9999
+        ref_res = run_reference_sandbox(mode="benchmark", seed=held_out_seed, timeout_s=30.0)
+        cand_res = run_candidate_sandbox(candidate.content, mode="benchmark", seed=held_out_seed, timeout_s=30.0)
         elapsed = time.perf_counter() - t0
-        try:
-            data = json.loads(res.stdout.strip())
-            if data.get("status") == "ok":
-                speedup = float(data.get("final_speedup", 1.0))
-                score = min(1.0, speedup / 6.0)
+
+        if ref_res.get("status") == "ok" and cand_res.get("status") == "ok":
+            # Check correctness on held-out seed
+            if ref_res.get("ans") == cand_res.get("ans"):
+                speedup = float(ref_res["elapsed_s"]) / max(float(cand_res["elapsed_s"]), 1e-9)
                 return VerificationResult(
                     valid=True,
-                    score=round(score, 4),
+                    score=round(speedup, 4),
                     feedback=f"Final held-out speedup: {speedup:.2f}x",
-                    evidence=data,
+                    evidence={
+                        "final_eval": True,
+                        "speedup": round(speedup, 4),
+                        "ref_s": round(float(ref_res["elapsed_s"]), 4),
+                        "cand_s": round(float(cand_res["elapsed_s"]), 4),
+                    },
                     elapsed_s=elapsed,
                 )
-        except Exception:
-            pass
+
         return VerificationResult(
             valid=False,
             score=0.0,
             feedback="Final held-out evaluation failed",
-            evidence={"stderr": res.stderr},
+            evidence={"ref": ref_res, "cand": cand_res, "final_eval": True},
             elapsed_s=elapsed,
         )
 
@@ -398,7 +424,7 @@ class CodeOptimizationTask(ResearchTask):
         self,
         workspace: Path | None = None,
         budget: Budget | None = None,
-        noise_threshold: float = 0.15,
+        noise_threshold: float = 0.08,
     ) -> None:
         self.noise_threshold = noise_threshold
         super().__init__(workspace=workspace, budget=budget)
@@ -418,9 +444,13 @@ class CodeOptimizationTask(ResearchTask):
         current_best: Candidate | None,
         recent_results: list[VerificationResult],
     ) -> str:
+        # Programmatic structured summary reading from candidate.metadata (#4, #10)
         best_score = 0.0
-        if current_best and "score" in current_best.metadata:
-            best_score = current_best.metadata["score"]
+        speedup = 1.0
+        if current_best and current_best.metadata:
+            ev = current_best.metadata.get("evidence", {})
+            speedup = ev.get("speedup", 1.0)
+            best_score = current_best.metadata.get("score", 0.0)
 
         last_sig = "none"
         last_msg = "none"
@@ -436,10 +466,10 @@ class CodeOptimizationTask(ResearchTask):
         card = (
             f"TASK: {self.task_class.upper()}\n"
             f"GOAL: {self.goal}\n"
-            f"CURRENT_BEST_SCORE: {best_score:.4f}\n"
+            f"CURRENT_BEST_SCORE: {best_score:.4f} (Speedup: {speedup:.2f}x)\n"
             f"LAST_FAILURE_SIGNATURE: {last_sig}\n"
             f"DEV_FEEDBACK: {last_msg}\n"
-            f"REQUIREMENT: Optimize topk_cosine_sim(A, Q, k) using vectorized or precomputed norms."
+            f"REQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices."
         )
         return card
 
@@ -452,8 +482,31 @@ class CodeOptimizationTask(ResearchTask):
         return "code/success"
 
     def initial_candidate(self) -> Candidate:
+        # Item #5: No hardcoded score in metadata; computed via run_ladder
         return Candidate(
             id="cand_code_initial",
             content=REFERENCE_CODE,
-            metadata={"score": 0.1, "verified": True},
+            metadata={},
+        )
+
+    def context_for_model(
+        self,
+        current_best: Candidate | None = None,
+        rung: str | None = None,
+    ) -> str:
+        best_code = current_best.content if current_best else self.initial_candidate().content
+        if rung == "hint":
+            card = self.state_card(current_best, [])
+            truncated_cand = best_code[:400] + ("..." if len(best_code) > 400 else "")
+            return f"STATE CARD:\n{card}\n\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
+
+        return (
+            f"TASK SPECIFICATION:\n"
+            f"- Goal: {self.goal}\n"
+            f"- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n"
+            f"- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n"
+            f"- Available libraries: Python standard library (math, random, collections, heapq)\n"
+            f"- Execution timeout limit: 15.0 seconds\n\n"
+            f"CURRENT BEST CANDIDATE CODE:\n"
+            f"```python\n{best_code}\n```"
         )

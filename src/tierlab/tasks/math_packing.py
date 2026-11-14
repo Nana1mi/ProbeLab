@@ -23,7 +23,7 @@ from tierlab.types import (
 )
 
 LITERATURE_BEST_SUM_R = 2.635
-TOLERANCE = 1e-5
+TOLERANCE = 1e-9
 
 
 def build_runner_script(n: int) -> str:
@@ -57,8 +57,9 @@ class MathL0Verifier(Verifier):
     name = "math_l0_executable"
     is_expensive = False  # Cheap executable check
 
-    def __init__(self, n: int = 26) -> None:
+    def __init__(self, n: int = 26, timeout_s: float = 30.0) -> None:
         self.n = n
+        self.timeout_s = timeout_s
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
@@ -67,7 +68,7 @@ class MathL0Verifier(Verifier):
             code=candidate.content,
             entry_filename="solution.py",
             runner_script=runner,
-            timeout_s=5.0,
+            timeout_s=self.timeout_s,
         )
         elapsed = time.perf_counter() - t0
 
@@ -148,12 +149,13 @@ class MathL1Verifier(Verifier):
     name = "math_l1_constraints"
     is_expensive = False  # Cheap geometric constraints check
 
-    def __init__(self, n: int = 26) -> None:
+    def __init__(self, n: int = 26, timeout_s: float = 30.0) -> None:
         self.n = n
+        self.timeout_s = timeout_s
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
-        l0 = MathL0Verifier(self.n).verify(candidate)
+        l0 = MathL0Verifier(self.n, timeout_s=self.timeout_s).verify(candidate)
         if not l0.valid:
             return VerificationResult(
                 valid=False,
@@ -209,13 +211,14 @@ class MathL2Verifier(Verifier):
     name = "math_l2_objective"
     is_expensive = False  # Objective scoring for valid candidates
 
-    def __init__(self, n: int = 26, initial_sum_r: float = 1.78) -> None:
+    def __init__(self, n: int = 26, initial_sum_r: float = 1.78, timeout_s: float = 30.0) -> None:
         self.n = n
         self.initial_sum_r = initial_sum_r
+        self.timeout_s = timeout_s
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
         t0 = time.perf_counter()
-        l1 = MathL1Verifier(self.n).verify(candidate)
+        l1 = MathL1Verifier(self.n, timeout_s=self.timeout_s).verify(candidate)
         if not l1.valid:
             return VerificationResult(
                 valid=False,
@@ -228,22 +231,40 @@ class MathL2Verifier(Verifier):
 
         circles = l1.evidence.get("circles", [])
         sum_r = sum(c[2] for c in circles)
-        normalized_score = min(1.0, max(0.0, sum_r / LITERATURE_BEST_SUM_R))
         relative_improvement = (sum_r - self.initial_sum_r) / max(1e-6, self.initial_sum_r)
 
-        return VerificationResult(
-            valid=True,
-            score=round(normalized_score, 5),
-            feedback=(
+        # Amendment #5 & #12:
+        # If n == 26, calculate normalized score against literature best 2.635
+        # If n != 26, do not normalize by 2.635; report raw sum of radii and relative improvement.
+        if self.n == 26:
+            normalized_score = min(1.0, max(0.0, sum_r / LITERATURE_BEST_SUM_R))
+            score = round(normalized_score, 5)
+            feedback = (
                 f"Sum of radii: {sum_r:.5f} (Relative improvement: {relative_improvement*100:.2f}%, "
                 f"Normalized: {normalized_score:.4f})"
-            ),
-            evidence={
+            )
+            evidence = {
                 "sum_r": round(sum_r, 5),
                 "initial_sum_r": round(self.initial_sum_r, 5),
                 "relative_improvement": round(relative_improvement, 5),
                 "normalized_score": round(normalized_score, 5),
-            },
+            }
+        else:
+            score = round(sum_r, 5)
+            feedback = (
+                f"Sum of radii: {sum_r:.5f} (Relative improvement: {relative_improvement*100:.2f}%)"
+            )
+            evidence = {
+                "sum_r": round(sum_r, 5),
+                "initial_sum_r": round(self.initial_sum_r, 5),
+                "relative_improvement": round(relative_improvement, 5),
+            }
+
+        return VerificationResult(
+            valid=True,
+            score=score,
+            feedback=feedback,
+            evidence=evidence,
             elapsed_s=time.perf_counter() - t0,
         )
 
@@ -254,12 +275,13 @@ class MathFinalEvaluationVerifier(Verifier):
     name = "math_final_eval"
     is_expensive = True
 
-    def __init__(self, n: int = 26, initial_sum_r: float = 1.78) -> None:
+    def __init__(self, n: int = 26, initial_sum_r: float = 1.78, timeout_s: float = 30.0) -> None:
         self.n = n
         self.initial_sum_r = initial_sum_r
+        self.timeout_s = timeout_s
 
     def verify(self, candidate: Candidate, context: dict | None = None) -> VerificationResult:
-        v = MathL2Verifier(self.n, self.initial_sum_r)
+        v = MathL2Verifier(self.n, self.initial_sum_r, timeout_s=self.timeout_s)
         res = v.verify(candidate, context)
         res.evidence["final_eval"] = True
         return res
@@ -273,50 +295,45 @@ class MathPackingTask(ResearchTask):
         workspace: Path | None = None,
         budget: Budget | None = None,
         n: int = 26,
+        math_timeout_s: float = 30.0,
     ) -> None:
         self.n = n
+        self.math_timeout_s = math_timeout_s
         self.goal = f"Place {n} non-overlapping circles in a unit square [0, 1] x [0, 1] maximizing sum of radii."
         self._initial_sum_r = self._compute_initial_sum_r()
         super().__init__(workspace=workspace, budget=budget)
 
     def _compute_initial_sum_r(self) -> float:
-        # Approximate baseline sum of radii for n circles
-        cand = self.initial_candidate()
-        # Parse circles from candidate
-        try:
-            locs: dict = {}
-            exec(cand.content, {}, locs)
-            c = locs["solve"]()
-            return sum(x[2] for x in c)
-        except Exception:
-            return 1.78
+        # Deterministic valid grid calculation for n circles (#5)
+        m = int(math.ceil(math.sqrt(self.n)))
+        w = 1.0 / m
+        r = 0.45 * w
+        return round(self.n * r, 5)
 
     def build_ladder(self) -> list[Verifier]:
         return [
-            MathL0Verifier(self.n),
-            MathL1Verifier(self.n),
-            MathL2Verifier(self.n, self._initial_sum_r),
+            MathL0Verifier(self.n, timeout_s=self.math_timeout_s),
+            MathL1Verifier(self.n, timeout_s=self.math_timeout_s),
+            MathL2Verifier(self.n, self._initial_sum_r, timeout_s=self.math_timeout_s),
         ]
 
     def build_final_verifier(self) -> Verifier:
-        return MathFinalEvaluationVerifier(self.n, self._initial_sum_r)
+        return MathFinalEvaluationVerifier(self.n, self._initial_sum_r, timeout_s=self.math_timeout_s)
 
     def state_card(
         self,
         current_best: Candidate | None,
         recent_results: list[VerificationResult],
     ) -> str:
-        # Programmatic structured summary without calling any LLM (#10)
+        # Programmatic structured summary reading from candidate.metadata (#4, #10)
         best_score = 0.0
         sum_r = 0.0
         rel_imp = 0.0
-        if current_best and "evidence" in current_best.metadata:
-            ev = current_best.metadata["evidence"]
+        if current_best and current_best.metadata:
+            ev = current_best.metadata.get("evidence", {})
             sum_r = ev.get("sum_r", 0.0)
             rel_imp = ev.get("relative_improvement", 0.0)
-            best_score = ev.get("normalized_score", 0.0)
-        elif current_best and "score" in current_best.metadata:
-            best_score = current_best.metadata["score"]
+            best_score = current_best.metadata.get("score", 0.0)
 
         last_sig = "none"
         last_msg = "none"
@@ -346,32 +363,55 @@ class MathPackingTask(ResearchTask):
         return "math/success"
 
     def initial_candidate(self) -> Candidate:
-        # Generate initial grid packing for n circles
-        rows = int(math.ceil(math.sqrt(self.n)))
-        cols = int(math.ceil(self.n / rows))
-        r = round(0.4 / max(rows, cols), 4)
-        step = round(0.9 / max(rows, cols), 4)
+        # Generate initial grid packing for n circles valid for ANY n >= 1 (#5)
+        m = int(math.ceil(math.sqrt(self.n)))
+        w = 1.0 / m
+        r = round(0.45 * w, 6)
 
         code = f'''"""Baseline initial candidate: {self.n} circles in [0, 1] x [0, 1]."""
+import math
 
 def solve():
     circles = []
     n = {self.n}
-    count = 0
-    step = {step}
+    m = {m}
+    w = 1.0 / m
     r = {r}
-    for i in range({rows}):
-        for j in range({cols}):
-            if count >= n:
-                break
-            x = round(0.08 + i * step, 4)
-            y = round(0.08 + j * step, 4)
-            circles.append((x, y, r))
-            count += 1
+    for k in range(n):
+        i = k // m
+        j = k % m
+        x = round((i + 0.5) * w, 6)
+        y = round((j + 0.5) * w, 6)
+        circles.append((x, y, r))
     return circles
 '''
+        # Item #5: No hardcoded score in metadata; computed via run_ladder
         return Candidate(
             id="cand_math_initial",
             content=code,
-            metadata={"score": 0.65, "verified": True},
+            metadata={},
+        )
+
+    def context_for_model(
+        self,
+        current_best: Candidate | None = None,
+        rung: str | None = None,
+    ) -> str:
+        best_code = current_best.content if current_best else self.initial_candidate().content
+        if rung == "hint":
+            # For hint: return state card and truncated current candidate (#1)
+            card = self.state_card(current_best, [])
+            truncated_cand = best_code[:400] + ("..." if len(best_code) > 400 else "")
+            return f"STATE CARD:\n{card}\n\nCURRENT BEST CANDIDATE (TRUNCATED):\n{truncated_cand}"
+
+        return (
+            f"TASK SPECIFICATION:\n"
+            f"- Goal: {self.goal}\n"
+            f"- Function signature: def solve() -> list[tuple[float, float, float]]\n"
+            f"- Return format: Exactly {self.n} (x, y, r) tuples strictly inside [0, 1] x [0, 1]\n"
+            f"- Constraints: No circle overlaps (dist >= r1 + r2) and no boundary overflow (r <= x <= 1-r, r <= y <= 1-r)\n"
+            f"- Available libraries: math, random, sys, json, numpy\n"
+            f"- Execution timeout limit: {self.math_timeout_s} seconds\n\n"
+            f"CURRENT BEST CANDIDATE CODE:\n"
+            f"```python\n{best_code}\n```"
         )

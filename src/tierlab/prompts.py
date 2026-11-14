@@ -1,9 +1,11 @@
 """Consultation ladder prompt templates and token limits.
 
-Per amendment #4:
+Per amendment #4 and Item #1:
   - First version activates 'hint' and 'solve' actions.
   - 'diagnose' and 'replan' templates are preserved but default disabled.
   - 'solve' directly produces candidate solution without local rewriting.
+  - Local prompts and cloud solve prompts include full context (candidate, contract, libs, timeout, papers/questions).
+  - Hint prompts include state card and current candidate (truncated).
 """
 
 from __future__ import annotations
@@ -49,22 +51,25 @@ def build_consultation_messages(
     full_context: str | None = None,
 ) -> list[dict[str, str]]:
     system_content = SYSTEM_PROMPTS.get(rung, SYSTEM_PROMPTS[ConsultationRung.HINT])
-    user_parts: list[str] = [f"### CURRENT STATE CARD\n{state_card}"]
+    user_parts: list[str] = []
 
     if rung == ConsultationRung.HINT:
+        ctx = full_context or f"### CURRENT STATE CARD\n{state_card}"
+        user_parts.append(f"### HINT CONTEXT (STATE & CANDIDATE)\n{ctx}")
         user_parts.append(
             "\n### INSTRUCTION\n"
             "The local solver is stalled. Provide a concise strategic hint or direction (<= 150 tokens) "
             "for the next iteration."
         )
     elif rung == ConsultationRung.SOLVE:
-        ctx = full_context or state_card
-        user_parts.append(f"\n### FULL CONTEXT\n{ctx}")
+        ctx = full_context or f"### CURRENT STATE CARD\n{state_card}"
+        user_parts.append(f"### FULL TASK SPECIFICATIONS & CURRENT BEST\n{ctx}")
         user_parts.append(
             "\n### INSTRUCTION\n"
             "Directly generate the complete improved candidate solution code/JSON now."
         )
     elif rung == ConsultationRung.DIAGNOSE:
+        user_parts.append(f"### CURRENT STATE CARD\n{state_card}")
         detail = failure_detail or "No failure detail provided."
         user_parts.append(f"\n### FAILURE TRACE / MINIMAL SAMPLE\n{detail}")
         user_parts.append(
@@ -72,6 +77,7 @@ def build_consultation_messages(
             "Identify why the candidate failed and formulate one general reusable rule (<= 400 tokens)."
         )
     elif rung == ConsultationRung.REPLAN:
+        user_parts.append(f"### CURRENT STATE CARD\n{state_card}")
         history = experiment_history_summary or "Multiple iterations failed to yield improvement."
         user_parts.append(f"\n### RECENT EXPERIMENT ATTEMPTS\n{history}")
         user_parts.append(
@@ -88,6 +94,7 @@ def build_consultation_messages(
 def build_local_prompt(
     task_description: str,
     state_card: str,
+    full_context: str | None = None,
     lesson_advice: str | None = None,
     cloud_guidance: str | None = None,
     temperature_angle: str | None = None,
@@ -98,8 +105,11 @@ def build_local_prompt(
     )
     user_parts = [
         f"### TASK\n{task_description}",
-        f"\n### CURRENT STATE\n{state_card}",
     ]
+    if full_context:
+        user_parts.append(f"\n### COMPLETE TASK CONTEXT & BEST CANDIDATE\n{full_context}")
+    else:
+        user_parts.append(f"\n### CURRENT STATE\n{state_card}")
 
     if lesson_advice:
         user_parts.append(f"\n### REUSED PROVEN LESSON\n{lesson_advice}")

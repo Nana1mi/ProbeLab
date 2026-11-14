@@ -2,10 +2,12 @@
 
 Ensures candidate code is executed in an isolated temporary directory, with
 strict timeouts, environment variable scrubbing, and zero execution in the main process.
+Implements sandbox execution caching by candidate hash per Item #14.
 """
 
 from __future__ import annotations
 
+import hashlib
 import os
 import shutil
 import subprocess
@@ -27,6 +29,17 @@ class SandboxExecutionResult(BaseModel):
     timed_out: bool = False
     temp_dir: str = ""
     error: str | None = None
+
+
+_SANDBOX_EXECUTION_CACHE: dict[str, SandboxExecutionResult] = {}
+
+
+def get_sandbox_cache() -> dict[str, SandboxExecutionResult]:
+    return _SANDBOX_EXECUTION_CACHE
+
+
+def clear_sandbox_cache() -> None:
+    _SANDBOX_EXECUTION_CACHE.clear()
 
 
 def get_safe_subprocess_env() -> dict[str, str]:
@@ -61,8 +74,20 @@ def execute_in_sandbox(
     extra_files: dict[str, str | bytes] | None = None,
     timeout_s: float = 10.0,
     args: list[str] | None = None,
+    use_cache: bool = True,
 ) -> SandboxExecutionResult:
-    """Execute code in an isolated temporary directory in a separate subprocess."""
+    """Execute code in an isolated temporary directory in a separate subprocess.
+
+    Per Item #14: Execution results are cached by content hash so each candidate
+    is only executed once in the sandbox.
+    """
+    cache_key = ""
+    if use_cache:
+        raw_key = f"{code}:{runner_script}:{timeout_s}:{args}"
+        cache_key = hashlib.sha256(raw_key.encode("utf-8")).hexdigest()
+        if cache_key in _SANDBOX_EXECUTION_CACHE:
+            return _SANDBOX_EXECUTION_CACHE[cache_key]
+
     temp_dir = tempfile.mkdtemp(prefix="tierlab_sandbox_")
     temp_path = Path(temp_dir)
     try:
@@ -92,7 +117,6 @@ def execute_in_sandbox(
             cmd.extend(args)
 
         env = get_safe_subprocess_env()
-        # Add current working dir / pythonpath to allow standard libraries
         env["PYTHONPATH"] = f"{temp_dir}{os.pathsep}{os.environ.get('PYTHONPATH', '')}"
 
         start_time = time.perf_counter()
@@ -106,7 +130,7 @@ def execute_in_sandbox(
                 timeout=timeout_s,
             )
             duration = time.perf_counter() - start_time
-            return SandboxExecutionResult(
+            res = SandboxExecutionResult(
                 returncode=proc.returncode,
                 stdout=proc.stdout,
                 stderr=proc.stderr,
@@ -116,7 +140,7 @@ def execute_in_sandbox(
             )
         except subprocess.TimeoutExpired as e:
             duration = time.perf_counter() - start_time
-            return SandboxExecutionResult(
+            res = SandboxExecutionResult(
                 returncode=-1,
                 stdout=e.stdout or "" if isinstance(e.stdout, str) else "",
                 stderr=e.stderr or "" if isinstance(e.stderr, str) else "",
@@ -127,7 +151,7 @@ def execute_in_sandbox(
             )
         except Exception as e:
             duration = time.perf_counter() - start_time
-            return SandboxExecutionResult(
+            res = SandboxExecutionResult(
                 returncode=-1,
                 stdout="",
                 stderr=str(e),
@@ -136,8 +160,11 @@ def execute_in_sandbox(
                 temp_dir=temp_dir,
                 error=str(e),
             )
+
+        if use_cache and cache_key:
+            _SANDBOX_EXECUTION_CACHE[cache_key] = res
+        return res
     finally:
-        # Clean up temporary directory
         try:
             shutil.rmtree(temp_dir, ignore_errors=True)
         except Exception:

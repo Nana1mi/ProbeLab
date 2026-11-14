@@ -6,15 +6,22 @@ backend: "mock"        # "mock" 或 "real"，换成 real 时连接 models.yaml �
 seed: 0
 
 controller:
-  k_init: 2
-  k_min: 1
-  k_max: 8
-  top_m_for_l2: 2
+  k_schedule: [1, 2, 4]
+  k_init: 1
+  local_patience: 2
+  stagnation_patience: 4
+  max_format_failures: 2
+  top_m_for_expensive: 2
   cascade_fail_threshold: 3
   no_widen: false
-  no_lessons: false
-  alpha: 0.0001
-  noise_threshold: 0.05
+  enable_lessons: false
+  share_lessons_across_runs: false
+  enable_diagnose_rung: false
+  enable_replan_rung: false
+  weak_backend: "local"
+  alpha_cny_per_min: 0.006
+  noise_threshold: 0.08
+  backend: "mock"
 
 budget:
   cloud_budget_cny: 5.0

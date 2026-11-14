@@ -34,7 +34,10 @@ class RunRequest(BaseModel):
     cloud_budget_cny: float = 5.0
     max_wall_clock_s: float = 300.0
     max_steps: int = 15
-    k_init: int = 2
+    k_init: int = 1
+    enable_lessons: bool = False
+    weak_backend: str = "local"
+    local_patience: int = 2
 
 
 async def _execute_task_worker(run_id: str, req: RunRequest) -> None:
@@ -50,9 +53,15 @@ async def _execute_task_worker(run_id: str, req: RunRequest) -> None:
             max_steps=req.max_steps,
         )
         task_instance = get_task(req.task, budget=budget)
-        gateway = ModelGateway(budget=budget, backend=req.backend)
+        gateway = ModelGateway(budget=budget, backend=req.backend, weak_target=req.weak_backend)
         lessons = LessonStore(run_folder / "lessons.json")
-        controller_conf = ControllerConfig(k_init=req.k_init, backend=req.backend)
+        controller_conf = ControllerConfig(
+            k_init=req.k_init,
+            enable_lessons=req.enable_lessons,
+            weak_backend=req.weak_backend,
+            local_patience=req.local_patience,
+            backend=req.backend,
+        )
 
         controller = ResearchController(
             task=task_instance,

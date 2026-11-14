@@ -25,6 +25,9 @@ budget:
   max_steps: 10
 
 controller:
-  k_init: 2
-  k_min: 1
-  k_max: 4
+  k_init: 1
+  k_schedule: [1, 2, 4]
+  local_patience: 2
+  stagnation_patience: 4
+  weak_backend: "local"
+  enable_lessons: false

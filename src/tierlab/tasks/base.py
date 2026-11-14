@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
@@ -80,6 +81,42 @@ class ResearchTask(ABC):
     def initial_candidate(self) -> Candidate:
         """Provide initial baseline candidate."""
         pass
+
+    @abstractmethod
+    def context_for_model(
+        self,
+        current_best: Candidate | None = None,
+        rung: str | None = None,
+    ) -> str:
+        """Provide complete prompt context for the model (Item #1).
+        
+        Must contain:
+          - Current best candidate full content
+          - Input/output conventions (signature, return types)
+          - Available libraries
+          - Execution timeout limit
+          - For paper task: full paper text and all questions
+          - For hint: state card and current candidate (can be truncated)
+        """
+        pass
+
+    def extract_candidate(self, raw: str) -> str:
+        """Extract clean candidate code or JSON from model response (Item #2).
+        
+        Rules:
+          1. Strip <think>...</think> reasoning blocks.
+          2. Extract the LAST fenced code block (e.g. ```python ... ``` or ```json ... ```).
+          3. If no code fences are found, return stripped raw text.
+        """
+        if not raw:
+            return ""
+        # 1. Strip reasoning blocks
+        cleaned = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL | re.IGNORECASE).strip()
+        # 2. Find fenced code blocks
+        fences = list(re.finditer(r"```(?:[a-zA-Z0-9_\-]+)?\s*\n?(.*?)```", cleaned, flags=re.DOTALL))
+        if fences:
+            return fences[-1].group(1).strip()
+        return cleaned
 
     def run_ladder(
         self,

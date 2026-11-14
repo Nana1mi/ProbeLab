@@ -61,6 +61,7 @@ class ModelGateway:
         self.mock_backend = mock_backend or MockLLMBackend()
 
         self.spent_cloud_cny: float = 0.0
+        self.reserved_cloud_cny: float = 0.0
         self.total_cloud_prompt_tokens: int = 0
         self.total_cloud_cached_tokens: int = 0
         self.total_cloud_completion_tokens: int = 0
@@ -110,6 +111,34 @@ class ModelGateway:
             + (completion_tokens * pricing.completion_cny_per_m / 1_000_000.0)
         )
         return cost
+
+    def reserve_budget(self, amount: float) -> None:
+        """Reserve worst-case cloud budget before concurrent K-way generation (#15)."""
+        remaining = self.budget.cloud_budget_cny - (self.spent_cloud_cny + self.reserved_cloud_cny)
+        if amount > (remaining + 1e-6):
+            raise BudgetExceededError(
+                f"Concurrent budget reservation rejected: requested {amount:.5f} CNY "
+                f"exceeds remaining unreserved budget {remaining:.5f} CNY "
+                f"(spent={self.spent_cloud_cny:.5f}, reserved={self.reserved_cloud_cny:.5f}, "
+                f"total={self.budget.cloud_budget_cny:.5f})."
+            )
+        self.reserved_cloud_cny += amount
+
+    def release_budget(self, amount: float) -> None:
+        """Release reservation after concurrent calls complete (#15)."""
+        self.reserved_cloud_cny = max(0.0, self.reserved_cloud_cny - amount)
+
+    def estimate_call_worst_case(
+        self,
+        target: str,
+        messages: list[dict[str, str]],
+        max_tokens: int | None = None,
+    ) -> float:
+        """Estimate worst-case cost for a call based on target and messages (#15)."""
+        endpoint, resolved = self._resolve_endpoint(target)
+        if resolved not in ("cloud", "cloud_small"):
+            return 0.0
+        return self._estimate_worst_case_cost(endpoint.pricing, messages, max_tokens)
 
     def _estimate_worst_case_cost(
         self,

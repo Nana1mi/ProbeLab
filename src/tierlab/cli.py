@@ -16,6 +16,7 @@ import os
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from tierlab.config import load_batch_config, load_run_config
 from tierlab.controller import ResearchController
@@ -49,11 +50,13 @@ def build_parser() -> argparse.ArgumentParser:
     run_p.add_argument("--cloud-budget", type=float, default=5.0, help="Hard cloud budget in CNY")
     run_p.add_argument("--max-steps", type=int, default=15, help="Maximum iteration steps")
     run_p.add_argument("--max-time", type=float, default=300.0, help="Max wall-clock seconds")
-    run_p.add_argument("--k-init", type=int, default=2, help="Initial parallel width K")
+    run_p.add_argument("--k-init", type=int, default=1, help="Initial parallel width K (#6)")
     run_p.add_argument("--no-widen", action="store_true", help="Ablation: disable K widening")
-    run_p.add_argument("--no-lessons", action="store_true", help="Ablation: disable lesson reuse")
+    run_p.add_argument("--enable-lessons", action="store_true", help="Enable lesson library (#6)")
+    run_p.add_argument("--weak-backend", type=str, default="local", choices=["local", "cloud_small"], help="Weak backend (#6, #8)")
+    run_p.add_argument("--local-patience", type=int, default=2, help="Stagnant rounds before consultation (#6, #12)")
     run_p.add_argument("--output-dir", type=str, default="runs", help="Output directory for ledgers")
-    run_p.add_argument("--config", type=str, default=None, help="Path to custom run config yaml")
+    run_p.add_argument("--config", type=str, default=None, help="Path to custom run config yaml (#6)")
 
     # 2. batch command
     batch_p = subparsers.add_parser("batch", help="Run a matrix of experiments from YAML")
@@ -76,18 +79,40 @@ def build_parser() -> argparse.ArgumentParser:
 def run_experiment(
     task_name: str,
     policy_name: str,
-    backend: str,
-    seed: int,
-    cloud_budget: float,
-    max_steps: int,
-    max_time: float,
-    k_init: int,
-    no_widen: bool,
-    no_lessons: bool,
-    output_dir: str | Path,
+    backend: str = "mock",
+    seed: int = 0,
+    cloud_budget: float = 5.0,
+    max_steps: int = 15,
+    max_time: float = 300.0,
+    k_init: int = 1,
+    no_widen: bool = False,
+    enable_lessons: bool = False,
+    weak_backend: str = "local",
+    local_patience: int = 2,
+    output_dir: str | Path = "runs",
     run_id: str | None = None,
+    config_file: str | Path | None = None,
 ) -> dict:
-    """Synchronous wrapper to execute a single run."""
+    """Synchronous wrapper to execute a single run with full configuration support (#6)."""
+    # Load config file if specified
+    raw_conf: dict[str, Any] = {}
+    if config_file:
+        raw_conf = load_run_config(config_file)
+
+    # Allow config file values to serve as defaults, overridden by explicit CLI parameters
+    c_ctrl = raw_conf.get("controller", {})
+    c_budget = raw_conf.get("budget", {})
+
+    final_k_init = k_init if k_init != 1 else c_ctrl.get("k_init", k_init)
+    final_no_widen = no_widen if no_widen else c_ctrl.get("no_widen", False)
+    final_enable_lessons = enable_lessons if enable_lessons else c_ctrl.get("enable_lessons", False)
+    final_weak_backend = weak_backend if weak_backend != "local" else c_ctrl.get("weak_backend", weak_backend)
+    final_local_patience = local_patience if local_patience != 2 else c_ctrl.get("local_patience", local_patience)
+
+    final_cloud_budget = cloud_budget if cloud_budget != 5.0 else c_budget.get("cloud_budget_cny", cloud_budget)
+    final_max_time = max_time if max_time != 300.0 else c_budget.get("max_wall_clock_s", max_time)
+    final_max_steps = max_steps if max_steps != 15 else c_budget.get("max_steps", max_steps)
+
     run_id = run_id or f"{task_name}_{policy_name}_s{seed}_{int(time.time())}"
     run_folder = Path(output_dir) / run_id
     run_folder.mkdir(parents=True, exist_ok=True)
@@ -95,17 +120,20 @@ def run_experiment(
     ledger_path = run_folder / "ledger.jsonl"
     ledger = DecisionLedger(ledger_path)
     budget = Budget(
-        cloud_budget_cny=cloud_budget,
-        max_wall_clock_s=max_time,
-        max_steps=max_steps,
+        cloud_budget_cny=final_cloud_budget,
+        max_wall_clock_s=final_max_time,
+        max_steps=final_max_steps,
     )
     task_instance = get_task(task_name, budget=budget)
-    gateway = ModelGateway(budget=budget, backend=backend)
+    gateway = ModelGateway(budget=budget, backend=backend, weak_target=final_weak_backend)
     lessons = LessonStore(run_folder / "lessons.json")
+
     controller_conf = ControllerConfig(
-        k_init=k_init,
-        no_widen=no_widen,
-        no_lessons=no_lessons,
+        k_init=final_k_init,
+        no_widen=final_no_widen,
+        enable_lessons=final_enable_lessons,
+        weak_backend=final_weak_backend,
+        local_patience=final_local_patience,
         backend=backend,
     )
 
@@ -141,8 +169,11 @@ def main(argv: list[str] | None = None) -> int:
             max_time=args.max_time,
             k_init=args.k_init,
             no_widen=args.no_widen,
-            no_lessons=args.no_lessons,
+            enable_lessons=args.enable_lessons,
+            weak_backend=args.weak_backend,
+            local_patience=args.local_patience,
             output_dir=args.output_dir,
+            config_file=args.config,
         )
         print("\n=== RUN COMPLETED ===")
         print(f"Run ID:            {summary['run']}")
@@ -167,9 +198,11 @@ def main(argv: list[str] | None = None) -> int:
         max_steps = budget_conf.get("max_steps", 10)
 
         ctrl_conf = conf.get("controller", {})
-        k_init = ctrl_conf.get("k_init", 2)
+        k_init = ctrl_conf.get("k_init", 1)
         no_widen = ctrl_conf.get("no_widen", False)
-        no_lessons = ctrl_conf.get("no_lessons", False)
+        enable_lessons = ctrl_conf.get("enable_lessons", False)
+        weak_backend = ctrl_conf.get("weak_backend", "local")
+        local_patience = ctrl_conf.get("local_patience", 2)
 
         total_experiments = len(tasks) * len(policies) * len(seeds)
         print(f"[*] Executing batch: {len(tasks)} tasks x {len(policies)} policies x {len(seeds)} seeds = {total_experiments} runs")
@@ -190,7 +223,9 @@ def main(argv: list[str] | None = None) -> int:
                         max_time=max_time,
                         k_init=k_init,
                         no_widen=no_widen,
-                        no_lessons=no_lessons,
+                        enable_lessons=enable_lessons,
+                        weak_backend=weak_backend,
+                        local_patience=local_patience,
                         output_dir=args.output_dir,
                         run_id=run_id,
                     )

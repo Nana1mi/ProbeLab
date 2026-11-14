@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class VerifierLevel(str, Enum):
@@ -130,7 +130,9 @@ class LedgerEntry(BaseModel):
     cloud_cny: float = 0.0
     gpu_s: float = 0.0
     gpu_cny: float = 0.0     # Separately tracked: gpu_s * rho_gpu_cny_per_s
-    wall_s: float = 0.0      # Separately tracked: wall clock time
+    wall_s: float = 0.0      # Separately tracked: step wall clock time
+    verify_s: float = 0.0    # Time spent running verifiers for this step (#10)
+    credited_to: str | None = None  # Attribution of improvement to hint (#11)
     score_before: float = 0.0
     score_after: float = 0.0
     verified: bool = False
@@ -144,7 +146,13 @@ class LedgerEntry(BaseModel):
 
 
 class ControllerConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")  # Forbid unknown fields (#6)
+
     k_schedule: list[int] = Field(default_factory=lambda: [1, 2, 4])
+    k_init: int = 1
+    local_patience: int = 2                   # Stagnant rounds before consultation (#12)
+    stagnation_patience: int = 4              # Unified stopping rule: stop after P steps no improvement (#7)
+    max_format_failures: int = 2              # Max consecutive format failures before escalation (#3)
     top_m_for_expensive: int = 2
     cascade_fail_threshold: int = 3
     no_widen: bool = False
@@ -152,7 +160,7 @@ class ControllerConfig(BaseModel):
     share_lessons_across_runs: bool = False   # Isolated per run by default (#7)
     enable_diagnose_rung: bool = False        # Default disabled (#4)
     enable_replan_rung: bool = False          # Default disabled (#4)
-    weak_backend_target: str = "local"        # "local" or "cloud_small" (#8)
+    weak_backend: str = "local"               # "local" or "cloud_small" (#8)
     alpha_cny_per_min: float = 0.006
     noise_threshold: float = 0.08
     backend: str = "mock"                     # "mock" or "real"

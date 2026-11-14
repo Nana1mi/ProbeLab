@@ -157,9 +157,10 @@ def generate_html_report(runs_dir: Path | str, output_path: Path | str | None = 
               <td>¥{e.cloud_cny:.4f}</td>
               <td>¥{e.gpu_cny:.4f}</td>
               <td>{e.wall_s:.2f}s</td>
+              <td>{e.verify_s:.2f}s</td>
               <td>{'&#9989;' if e.verified else '&#10060;'}</td>
               <td>{'&#9888;&#65039; Dup' if e.duplicate else '-'}</td>
-              <td><code>{e.lesson_id or '-'}</code></td>
+              <td><code>{e.credited_to or e.lesson_id or '-'}</code></td>
             </tr>
             """)
         replay_sections.append(f"""
@@ -168,8 +169,8 @@ def generate_html_report(runs_dir: Path | str, output_path: Path | str | None = 
           <p>
             Final Score: <strong>{l.summary()['final_score']}</strong> |
             Cloud CNY: <strong>¥{l.summary()['total_cloud_cny']:.4f}</strong> |
-            GPU CNY: <strong>¥{l.summary()['total_gpu_cny']:.4f}</strong> |
-            Wall Time: <strong>{l.summary()['total_wall_s']:.1f}s</strong> |
+            GPU Lease CNY: <strong>¥{l.summary().get('total_gpu_lease_cny', 0.0):.4f}</strong> (Busy: {l.summary()['total_gpu_s']:.1f}s / ¥{l.summary()['total_gpu_cny']:.4f}) |
+            Wall Time: <strong>{l.summary()['total_wall_s']:.1f}s</strong> (Verify: {l.summary().get('total_verify_s', 0.0):.1f}s) |
             BA-AUC: <strong>{l.summary()['ba_auc']:.3f}</strong>
           </p>
           <div class="table-container">
@@ -177,7 +178,7 @@ def generate_html_report(runs_dir: Path | str, output_path: Path | str | None = 
               <thead>
                 <tr>
                   <th>Step</th><th>Action</th><th>Trigger</th><th>Score</th><th>&Delta;</th>
-                  <th>Cloud ¥</th><th>GPU ¥</th><th>Wall s</th><th>Verified</th><th>Dup</th><th>Lesson</th>
+                  <th>Cloud ¥</th><th>GPU ¥</th><th>Wall s</th><th>Verify s</th><th>Verified</th><th>Dup</th><th>Credited / Lesson</th>
                 </tr>
               </thead>
               <tbody>
