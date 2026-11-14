@@ -31,7 +31,11 @@ def load_runs_from_dir(runs_dir: Path | str) -> list[DecisionLedger]:
         ledgers.append(DecisionLedger(p))
     elif p.is_dir():
         for jsonl_file in sorted(p.rglob("*.jsonl")):
-            ledgers.append(DecisionLedger(jsonl_file))
+            if jsonl_file.name == 'trace.jsonl':
+                continue
+            ledger = DecisionLedger(jsonl_file)
+            if ledger.entries:
+                ledgers.append(ledger)
     return ledgers
 
 

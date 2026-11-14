@@ -1,0 +1,23 @@
+{
+  "all_local": {
+    "correct": 5,
+    "valid": 5,
+    "n": 5,
+    "median_speedup": 58.877464603428734,
+    "median_candidate_ms": 4.747200000565499
+  },
+  "all_cloud": {
+    "correct": 5,
+    "valid": 5,
+    "n": 5,
+    "median_speedup": 69.52572297517487,
+    "median_candidate_ms": 4.021699998702388
+  },
+  "tierlab": {
+    "correct": 5,
+    "valid": 5,
+    "n": 5,
+    "median_speedup": 83.28880192961542,
+    "median_candidate_ms": 3.3960999971895944
+  }
+}

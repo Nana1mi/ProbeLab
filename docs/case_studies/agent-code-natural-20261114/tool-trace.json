@@ -1,0 +1,127 @@
+{
+  "calls": [
+    {
+      "id": "01a1da6bfdb69371f98701cf30eed956",
+      "name": "start_research",
+      "args": {
+        "task": "code",
+        "policy": "tierlab",
+        "backend": "real",
+        "models_profile": "siliconflow",
+        "weak_backend": "cloud_small",
+        "seed": 0,
+        "max_steps": 6,
+        "max_wall_clock_s": 240,
+        "cloud_budget_cny": 0.5,
+        "local_max_tokens": 4096,
+        "code_max_speedup": 50
+      }
+    },
+    {
+      "id": "01a1da6c02a751c67099ef0af6a599e7",
+      "name": "get_research_status",
+      "args": {
+        "run_id": "run_code_tierlab_12850fbd",
+        "wait_seconds": 20
+      }
+    },
+    {
+      "id": "01a1da6c4e81a306f8350e071d05e555",
+      "name": "get_research_status",
+      "args": {
+        "run_id": "run_code_tierlab_12850fbd",
+        "wait_seconds": 20
+      }
+    },
+    {
+      "id": "01a1da6c9ac0bb648fcb89f4fb408325",
+      "name": "get_research_status",
+      "args": {
+        "run_id": "run_code_tierlab_12850fbd",
+        "wait_seconds": 25
+      }
+    },
+    {
+      "id": "01a1da6cf9c132d6828ccf54e9eb1934",
+      "name": "get_research_status",
+      "args": {
+        "run_id": "run_code_tierlab_12850fbd",
+        "wait_seconds": 30
+      }
+    },
+    {
+      "id": "01a1da6d6a7769d793d3e01a13b2dd1d",
+      "name": "get_research_status",
+      "args": {
+        "run_id": "run_code_tierlab_12850fbd",
+        "wait_seconds": 30
+      }
+    },
+    {
+      "id": "01a1da6d78672ceef30627d4d264c735",
+      "name": "get_research_report",
+      "args": {
+        "run_id": "run_code_tierlab_12850fbd"
+      }
+    },
+    {
+      "id": "01a1da6d7dc639405db885e4ac55706e",
+      "name": "present_files",
+      "args": {
+        "filepaths": [
+          "/mnt/user-data/outputs/vela-run_code_tierlab_12850fbd.html"
+        ]
+      }
+    }
+  ],
+  "returns": [
+    {
+      "tool_call_id": "01a1da6bfdb69371f98701cf30eed956",
+      "name": "start_research",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"status\": \"queued\"}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6c02a751c67099ef0af6a599e7",
+      "name": "get_research_status",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"task\": \"code\", \"policy\": \"tierlab\", \"status\": \"running\", \"seed\": 0, \"backend\": \"real\", \"request\": {\"task\": \"code\", \"policy\": \"tierlab\", \"backend\": \"real\", \"seed\": 0, \"cloud_budget_cny\": 0.5, \"max_wall_clock_s\": 240.0, \"max_steps\": 6, \"k_init\": 1, \"enable_lessons\": false, \"weak_backend\": \"cloud_small\", \"models_profile\": \"siliconflow\", \"local_patience\": 2, \"local_max_tokens\": 4096, \"hint_max_tokens\": 400, \"max_feedback_chars\": 2400, \"code_allowed_libraries\": [\"stdlib\", \"numpy\"], \"code_max_speedup\": 50.0, \"timing_tolerance_s\": 2.0}, \"rho_gpu_cny_per_s\": 0.0, \"summary\": {\"run\": \"run_code_tierlab_12850fbd\", \"policy\": \"tierlab\", \"seed\": 0, \"config_hash\": \"b2e6d365de\", \"total_steps\": 1, \"final_score\": 0.1, \"total_cloud_cny\": 0.009436, \"total_gpu_s\": 0.0, \"total_gpu_cny\": 0.0, \"total_wall_s\": 0.0, \"total_gpu_lease_cny\": 0.0, \"total_verify_s\": 0.0, \"total_cloud_tokens\": 1617, \"ba_auc\": 0.1, \"consultations_by_rung\": {\"hint\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"solve\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"diagnose\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"replan\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}}, \"lesson_hits\": 0, \"duplicates_skipped\": 0, \"cloud_calls\": 1, \"local_calls\": 0, \"stop_reason\": \"unknown\"}, \"ledger_count\": 1, \"latest\": {\"run\": \"run_code_tierlab_12850fbd\", \"step\": 1, \"action\": \"widen\", \"trigger\": \"stagnation_local_patience(1/2)\", \"cloud_in\": 892, \"cloud_out\": 725, \"cloud_cny\": 0.0094356, \"gpu_s\": 0.0, \"gpu_cny\": 0.0, \"wall_s\": 0.0, \"verify_s\": 0.0, \"credited_to\": null, \"score_before\": 0.1, \"score_after\": 0.1, \"verified\": false, \"duplicate\": false, \"lesson_id\": null, \"seed\": 0, \"policy\": \"tierlab\", \"config_hash\": \"b2e6d365de\", \"timestamp\": \"2026-11-14T14:18:08.764875+00:00\", \"extra\": {\"k_before\": 1, \"k_after\": 2, \"model_calls\": {\"cloud\": 1, \"local\": 0}, \"failure_signature\": \"code/suspicious_timing\", \"feedback\": \"Rejected timing anomaly or speedup above the configured limit.\"}}}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6c4e81a306f8350e071d05e555",
+      "name": "get_research_status",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"task\": \"code\", \"policy\": \"tierlab\", \"status\": \"running\", \"seed\": 0, \"backend\": \"real\", \"request\": {\"task\": \"code\", \"policy\": \"tierlab\", \"backend\": \"real\", \"seed\": 0, \"cloud_budget_cny\": 0.5, \"max_wall_clock_s\": 240.0, \"max_steps\": 6, \"k_init\": 1, \"enable_lessons\": false, \"weak_backend\": \"cloud_small\", \"models_profile\": \"siliconflow\", \"local_patience\": 2, \"local_max_tokens\": 4096, \"hint_max_tokens\": 400, \"max_feedback_chars\": 2400, \"code_allowed_libraries\": [\"stdlib\", \"numpy\"], \"code_max_speedup\": 50.0, \"timing_tolerance_s\": 2.0}, \"rho_gpu_cny_per_s\": 0.0, \"summary\": {\"run\": \"run_code_tierlab_12850fbd\", \"policy\": \"tierlab\", \"seed\": 0, \"config_hash\": \"b2e6d365de\", \"total_steps\": 2, \"final_score\": 0.1, \"total_cloud_cny\": 0.031432, \"total_gpu_s\": 0.0, \"total_gpu_cny\": 0.0, \"total_wall_s\": 6.35, \"total_gpu_lease_cny\": 0.0, \"total_verify_s\": 0.0, \"total_cloud_tokens\": 5679, \"ba_auc\": 0.1, \"consultations_by_rung\": {\"hint\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.021997, \"roi_delta_per_cny\": 0.0}, \"solve\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"diagnose\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"replan\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}}, \"lesson_hits\": 0, \"duplicates_skipped\": 0, \"cloud_calls\": 4, \"local_calls\": 0, \"stop_reason\": \"unknown\"}, \"ledger_count\": 2, \"latest\": {\"run\": \"run_code_tierlab_12850fbd\", \"step\": 2, \"action\": \"hint\", \"trigger\": \"escalation_hint\", \"cloud_in\": 2318, \"cloud_out\": 1744, \"cloud_cny\": 0.021996800000000004, \"gpu_s\": 0.0, \"gpu_cny\": 0.0, \"wall_s\": 6.351, \"verify_s\": 0.0, \"credited_to\": null, \"score_before\": 0.1, \"score_after\": 0.1, \"verified\": false, \"duplicate\": false, \"lesson_id\": null, \"seed\": 0, \"policy\": \"tierlab\", \"config_hash\": \"b2e6d365de\", \"timestamp\": \"2026-11-14T14:18:25.896490+00:00\", \"extra\": {\"guidance\": \"**Strategic direction: fix the timing anomaly first; the speedup ceiling is gating, not the algorithm.**\\n\\n1. **Diagnose `suspicious_timing` before optimizing further.** The 1.04x with a rejection implies the harness measured something inconsistent (warmup, import cost, GC, or nondeterministic ordering breaking a correctness/equivalence check mislabeled as timing). Instrument: run the reference and candidate in the same process, report per-call wall time over ≥5 repetitions excluding first call, and verify output equality (indices + tie handling) against reference *before* claiming speedup. If the harness caps speedup (e.g., rejects >Xx), target a modest, stable ~1.5–2x, not maximal.\\n\\n2. **Correctness contract is the real risk.** Cosine top-K has tie-breaking ambiguity: the reference uses pure-Python accumulation order and likely `sorted`/`argsort` semantics. Match index ordering exactly (stable sort by descending similarity, ties by ascending index) or the equivalence check fails and gets misreported as timing.\\n\\n3. **Minimal, safe vectorization (not a rewrite):** precompute A's norms once outside the query loop; use `np.asarray` with `dtype=np.float64`; single `Q @ A.T` GEMM; divide by (q_norm * a_norm); use `np.argpartition` for k then stable-sort the k candidates. Avoid float32 (changes tie behavior vs reference). Guard zero-norm vectors to match reference semantics (reference divides by sqrt(0)=0 → inf/nan; replicate or document).\\n\\n4. **Avoid the anomaly triggers:** no `time`-based tricks, no caching across calls, no threading, no JIT. Keep it a pure, deterministic function.\\n\\n5. **If speedup stays capped ~1.04x:** the bottleneck is harness overhead (conversion\", \"model_calls\": {\"cloud\": 3, \"local\": 0}, \"failure_signature\": \"code/suspicious_timing\", \"feedback\": \"Rejected timing anomaly or speedup above the configured limit.\"}}}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6c9ac0bb648fcb89f4fb408325",
+      "name": "get_research_status",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"task\": \"code\", \"policy\": \"tierlab\", \"status\": \"running\", \"seed\": 0, \"backend\": \"real\", \"request\": {\"task\": \"code\", \"policy\": \"tierlab\", \"backend\": \"real\", \"seed\": 0, \"cloud_budget_cny\": 0.5, \"max_wall_clock_s\": 240.0, \"max_steps\": 6, \"k_init\": 1, \"enable_lessons\": false, \"weak_backend\": \"cloud_small\", \"models_profile\": \"siliconflow\", \"local_patience\": 2, \"local_max_tokens\": 4096, \"hint_max_tokens\": 400, \"max_feedback_chars\": 2400, \"code_allowed_libraries\": [\"stdlib\", \"numpy\"], \"code_max_speedup\": 50.0, \"timing_tolerance_s\": 2.0}, \"rho_gpu_cny_per_s\": 0.0, \"summary\": {\"run\": \"run_code_tierlab_12850fbd\", \"policy\": \"tierlab\", \"seed\": 0, \"config_hash\": \"b2e6d365de\", \"total_steps\": 3, \"final_score\": 0.1, \"total_cloud_cny\": 0.086781, \"total_gpu_s\": 0.0, \"total_gpu_cny\": 0.0, \"total_wall_s\": 10.23, \"total_gpu_lease_cny\": 0.0, \"total_verify_s\": 2.034, \"total_cloud_tokens\": 13709, \"ba_auc\": 0.1, \"consultations_by_rung\": {\"hint\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.021997, \"roi_delta_per_cny\": 0.0}, \"solve\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.055349, \"roi_delta_per_cny\": 0.0}, \"diagnose\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"replan\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}}, \"lesson_hits\": 0, \"duplicates_skipped\": 0, \"cloud_calls\": 7, \"local_calls\": 0, \"stop_reason\": \"unknown\"}, \"ledger_count\": 3, \"latest\": {\"run\": \"run_code_tierlab_12850fbd\", \"step\": 3, \"action\": \"solve\", \"trigger\": \"escalation_solve\", \"cloud_in\": 3366, \"cloud_out\": 4664, \"cloud_cny\": 0.05534880000000001, \"gpu_s\": 0.0, \"gpu_cny\": 0.0, \"wall_s\": 3.878, \"verify_s\": 2.034, \"credited_to\": null, \"score_before\": 0.1, \"score_after\": 0.1, \"verified\": false, \"duplicate\": false, \"lesson_id\": null, \"seed\": 0, \"policy\": \"tierlab\", \"config_hash\": \"b2e6d365de\", \"timestamp\": \"2026-11-14T14:18:57.124196+00:00\", \"extra\": {\"model_calls\": {\"cloud\": 3, \"local\": 0}, \"failure_signature\": \"code/suspicious_timing\", \"feedback\": \"Rejected timing anomaly or speedup above the configured limit.\"}}}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6cf9c132d6828ccf54e9eb1934",
+      "name": "get_research_status",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"task\": \"code\", \"policy\": \"tierlab\", \"status\": \"running\", \"seed\": 0, \"backend\": \"real\", \"request\": {\"task\": \"code\", \"policy\": \"tierlab\", \"backend\": \"real\", \"seed\": 0, \"cloud_budget_cny\": 0.5, \"max_wall_clock_s\": 240.0, \"max_steps\": 6, \"k_init\": 1, \"enable_lessons\": false, \"weak_backend\": \"cloud_small\", \"models_profile\": \"siliconflow\", \"local_patience\": 2, \"local_max_tokens\": 4096, \"hint_max_tokens\": 400, \"max_feedback_chars\": 2400, \"code_allowed_libraries\": [\"stdlib\", \"numpy\"], \"code_max_speedup\": 50.0, \"timing_tolerance_s\": 2.0}, \"rho_gpu_cny_per_s\": 0.0, \"summary\": {\"run\": \"run_code_tierlab_12850fbd\", \"policy\": \"tierlab\", \"seed\": 0, \"config_hash\": \"b2e6d365de\", \"total_steps\": 3, \"final_score\": 0.1, \"total_cloud_cny\": 0.086781, \"total_gpu_s\": 0.0, \"total_gpu_cny\": 0.0, \"total_wall_s\": 10.23, \"total_gpu_lease_cny\": 0.0, \"total_verify_s\": 2.034, \"total_cloud_tokens\": 13709, \"ba_auc\": 0.1, \"consultations_by_rung\": {\"hint\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.021997, \"roi_delta_per_cny\": 0.0}, \"solve\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.055349, \"roi_delta_per_cny\": 0.0}, \"diagnose\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"replan\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}}, \"lesson_hits\": 0, \"duplicates_skipped\": 0, \"cloud_calls\": 7, \"local_calls\": 0, \"stop_reason\": \"unknown\"}, \"ledger_count\": 3, \"latest\": {\"run\": \"run_code_tierlab_12850fbd\", \"step\": 3, \"action\": \"solve\", \"trigger\": \"escalation_solve\", \"cloud_in\": 3366, \"cloud_out\": 4664, \"cloud_cny\": 0.05534880000000001, \"gpu_s\": 0.0, \"gpu_cny\": 0.0, \"wall_s\": 3.878, \"verify_s\": 2.034, \"credited_to\": null, \"score_before\": 0.1, \"score_after\": 0.1, \"verified\": false, \"duplicate\": false, \"lesson_id\": null, \"seed\": 0, \"policy\": \"tierlab\", \"config_hash\": \"b2e6d365de\", \"timestamp\": \"2026-11-14T14:18:57.124196+00:00\", \"extra\": {\"model_calls\": {\"cloud\": 3, \"local\": 0}, \"failure_signature\": \"code/suspicious_timing\", \"feedback\": \"Rejected timing anomaly or speedup above the configured limit.\"}}}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6d6a7769d793d3e01a13b2dd1d",
+      "name": "get_research_status",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"task\": \"code\", \"policy\": \"tierlab\", \"status\": \"completed\", \"seed\": 0, \"backend\": \"real\", \"request\": {\"task\": \"code\", \"policy\": \"tierlab\", \"backend\": \"real\", \"seed\": 0, \"cloud_budget_cny\": 0.5, \"max_wall_clock_s\": 240.0, \"max_steps\": 6, \"k_init\": 1, \"enable_lessons\": false, \"weak_backend\": \"cloud_small\", \"models_profile\": \"siliconflow\", \"local_patience\": 2, \"local_max_tokens\": 4096, \"hint_max_tokens\": 400, \"max_feedback_chars\": 2400, \"code_allowed_libraries\": [\"stdlib\", \"numpy\"], \"code_max_speedup\": 50.0, \"timing_tolerance_s\": 2.0}, \"rho_gpu_cny_per_s\": 0.0, \"summary\": {\"run\": \"run_code_tierlab_12850fbd\", \"policy\": \"tierlab\", \"seed\": 0, \"config_hash\": \"b2e6d365de\", \"total_steps\": 5, \"final_score\": 0.9284, \"total_cloud_cny\": 0.138268, \"total_gpu_s\": 0.0, \"total_gpu_cny\": 0.0, \"total_wall_s\": 92.65, \"total_gpu_lease_cny\": 0.0, \"total_verify_s\": 2.851, \"total_cloud_tokens\": 20693, \"ba_auc\": 0.6993, \"consultations_by_rung\": {\"hint\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.021997, \"roi_delta_per_cny\": 0.0}, \"solve\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.055349, \"roi_delta_per_cny\": 0.0}, \"diagnose\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"replan\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}}, \"lesson_hits\": 0, \"duplicates_skipped\": 0, \"cloud_calls\": 9, \"local_calls\": 0, \"stop_reason\": \"consultation_ladder_exhausted\"}, \"final_score\": 0.9284, \"report_path\": \"/research/runs/run_code_tierlab_12850fbd/report.html\", \"ledger_count\": 5, \"latest\": {\"run\": \"run_code_tierlab_12850fbd\", \"step\": 5, \"action\": \"final_eval\", \"trigger\": \"held_out_final_evaluation\", \"cloud_in\": 0, \"cloud_out\": 0, \"cloud_cny\": 0.0, \"gpu_s\": 0.0, \"gpu_cny\": 0.0, \"wall_s\": 0.817, \"verify_s\": 0.817, \"credited_to\": null, \"score_before\": 0.1, \"score_after\": 0.9284, \"verified\": true, \"duplicate\": false, \"lesson_id\": null, \"seed\": 0, \"policy\": \"tierlab\", \"config_hash\": \"b2e6d365de\", \"timestamp\": \"2026-11-14T14:19:29.993176+00:00\", \"extra\": {\"final_feedback\": \"Final held-out speedup: 0.93x\", \"evidence\": {\"final_eval\": true, \"speedup\": 0.9284, \"ref_s\": 0.3563, \"cand_s\": 0.3838}, \"model_calls\": {\"cloud\": 0, \"local\": 0}, \"failure_signature\": \"code/suspicious_timing\", \"feedback\": \"Rejected timing anomaly or speedup above the configured limit.\"}}}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6d78672ceef30627d4d264c735",
+      "name": "get_research_report",
+      "content": "{\"run_id\": \"run_code_tierlab_12850fbd\", \"status\": \"completed\", \"summary\": {\"run\": \"run_code_tierlab_12850fbd\", \"policy\": \"tierlab\", \"seed\": 0, \"config_hash\": \"b2e6d365de\", \"total_steps\": 5, \"final_score\": 0.9284, \"total_cloud_cny\": 0.138268, \"total_gpu_s\": 0.0, \"total_gpu_cny\": 0.0, \"total_wall_s\": 92.65, \"total_gpu_lease_cny\": 0.0, \"total_verify_s\": 2.851, \"total_cloud_tokens\": 20693, \"ba_auc\": 0.6993, \"consultations_by_rung\": {\"hint\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.021997, \"roi_delta_per_cny\": 0.0}, \"solve\": {\"count\": 1, \"verified_improvements\": 0, \"total_delta\": 0.0, \"total_cost_cny\": 0.055349, \"roi_delta_per_cny\": 0.0}, \"diagnose\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}, \"replan\": {\"count\": 0, \"verified_improvements\": 0, \"total_delta\": 0, \"total_cost_cny\": 0, \"roi_delta_per_cny\": 0.0}}, \"lesson_hits\": 0, \"duplicates_skipped\": 0, \"cloud_calls\": 9, \"local_calls\": 0, \"stop_reason\": \"consultation_ladder_exhausted\"}, \"artifact_path\": \"/mnt/user-data/outputs/vela-run_code_tierlab_12850fbd.html\", \"next_action\": \"Call present_files with filepaths=[artifact_path], then summarize the verified results.\"}",
+      "status": "success"
+    },
+    {
+      "tool_call_id": "01a1da6d7dc639405db885e4ac55706e",
+      "name": "present_files",
+      "content": "Successfully presented files",
+      "status": "success"
+    }
+  ]
+}

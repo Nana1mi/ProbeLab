@@ -1,0 +1,7 @@
+{
+  "completed": false,
+  "reason": "Stopped after the frozen-code confirmation met the case threshold; no mathematical comparison claim.",
+  "returned_calls": 2,
+  "returned_usage_cost_cny": 0.091368,
+  "inflight_usage": "Cancelled request may have unreported billed usage."
+}

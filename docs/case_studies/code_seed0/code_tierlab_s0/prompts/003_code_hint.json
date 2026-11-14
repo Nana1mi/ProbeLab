@@ -1,0 +1,22 @@
+{
+  "task": "code",
+  "kind": "hint",
+  "target": "cloud",
+  "backend": "real",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Provide a brief strategic hint or direction. Do not write full code or detailed implementations."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 2\nSTAGNANT_STEPS: 1\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 76.7003 (Speedup: 76.70x)\nLAST_FAILURE_SIGNATURE: success\nDEV_FEEDBACK: Verified speedup: 71.48x (Candidate: 3.8ms, Ref: 273.8ms)\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert to numpy arrays for vectorized operations\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    # Compute norms\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    \n    # Avoid division by zero by adding a small epsilon\n    A_norms = np.maximum(A_norms, 1e-12)\n    Q_norms = np.maximum(Q_norms, 1e-12)\n    \n    # Normalize vectors\n    A_normalized = A_np / A_norms\n    \n### HINT CONTEXT (STATE & CANDIDATE)\nCURRENT BEST CANDIDATE (TRUNCATED):\nimport math\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert to numpy arrays for vectorized operations\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    # Normalize rows of A and Q\n    # Compute norms\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    Q_norms = np.linalg...\n\n### INSTRUCTION\nThe local solver is stalled. Provide a concise strategic hint or direction for the next iteration."
+    }
+  ],
+  "max_tokens": 400,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false
+  }
+}

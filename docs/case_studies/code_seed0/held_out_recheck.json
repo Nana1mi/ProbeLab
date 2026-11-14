@@ -1,0 +1,167 @@
+[
+  {
+    "policy": "all_local",
+    "seed": 9999,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2770983000009437,
+    "candidate_s": 0.0034516000014264137,
+    "reference_parent_s": 0.3656436000019312,
+    "candidate_parent_s": 0.19506170000022394,
+    "speedup": 80.28111597126829
+  },
+  {
+    "policy": "all_cloud",
+    "seed": 9999,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2796115999990434,
+    "candidate_s": 0.004021699998702388,
+    "reference_parent_s": 0.36193490000005113,
+    "candidate_parent_s": 0.19112550000136252,
+    "speedup": 69.52572297517487
+  },
+  {
+    "policy": "tierlab",
+    "seed": 9999,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.27097759999742266,
+    "candidate_s": 0.0029705999986617826,
+    "reference_parent_s": 0.3479366999999911,
+    "candidate_parent_s": 0.19484440000087488,
+    "speedup": 91.2198209518261
+  },
+  {
+    "policy": "all_cloud",
+    "seed": 10001,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2806003999976383,
+    "candidate_s": 0.005625999998301268,
+    "reference_parent_s": 0.35762379999869154,
+    "candidate_parent_s": 0.20050160000027972,
+    "speedup": 49.8756487881912
+  },
+  {
+    "policy": "tierlab",
+    "seed": 10001,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.27741669999886653,
+    "candidate_s": 0.004473099997994723,
+    "reference_parent_s": 0.3525317999992694,
+    "candidate_parent_s": 0.1872174999989511,
+    "speedup": 62.01889072974706
+  },
+  {
+    "policy": "all_local",
+    "seed": 10001,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2657601999999315,
+    "candidate_s": 0.005812999999761814,
+    "reference_parent_s": 0.35126259999742615,
+    "candidate_parent_s": 0.1952038999988872,
+    "speedup": 45.71825219522122
+  },
+  {
+    "policy": "tierlab",
+    "seed": 10003,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2772504000022309,
+    "candidate_s": 0.002844299997377675,
+    "reference_parent_s": 0.3674297999968985,
+    "candidate_parent_s": 0.19101839999711956,
+    "speedup": 97.47579378330137
+  },
+  {
+    "policy": "all_local",
+    "seed": 10003,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.27950309999869205,
+    "candidate_s": 0.004747200000565499,
+    "reference_parent_s": 0.3634292999995523,
+    "candidate_parent_s": 0.2055027999995218,
+    "speedup": 58.877464603428734
+  },
+  {
+    "policy": "all_cloud",
+    "seed": 10003,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.26966040000115754,
+    "candidate_s": 0.003386200001841644,
+    "reference_parent_s": 0.3508588000004238,
+    "candidate_parent_s": 0.20674679999865475,
+    "speedup": 79.6351071568419
+  },
+  {
+    "policy": "all_local",
+    "seed": 10007,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2685611000015342,
+    "candidate_s": 0.0033074000020860694,
+    "reference_parent_s": 0.3529171000009228,
+    "candidate_parent_s": 0.20536170000195852,
+    "speedup": 81.20006646675492
+  },
+  {
+    "policy": "all_cloud",
+    "seed": 10007,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.29274420000001555,
+    "candidate_s": 0.004522999999608146,
+    "reference_parent_s": 0.37320550000004005,
+    "candidate_parent_s": 0.2027023000009649,
+    "speedup": 64.72345788754758
+  },
+  {
+    "policy": "tierlab",
+    "seed": 10007,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2778599999983271,
+    "candidate_s": 0.003988299999036826,
+    "reference_parent_s": 0.360870900000009,
+    "candidate_parent_s": 0.22256779999952414,
+    "speedup": 69.66878120137157
+  },
+  {
+    "policy": "all_cloud",
+    "seed": 10009,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.27989529999831575,
+    "candidate_s": 0.0035383000031288248,
+    "reference_parent_s": 0.37667750000036904,
+    "candidate_parent_s": 0.21454259999882197,
+    "speedup": 79.10445687217357
+  },
+  {
+    "policy": "tierlab",
+    "seed": 10009,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.2828570999990916,
+    "candidate_s": 0.0033960999971895944,
+    "reference_parent_s": 0.36961890000020503,
+    "candidate_parent_s": 0.22030520000043907,
+    "speedup": 83.28880192961542
+  },
+  {
+    "policy": "all_local",
+    "seed": 10009,
+    "correct": true,
+    "valid": true,
+    "reference_s": 0.28454839999903925,
+    "candidate_s": 0.004901500000414671,
+    "reference_parent_s": 0.36717680000219843,
+    "candidate_parent_s": 0.20696740000130376,
+    "speedup": 58.05333060797025
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "target": "cloud",
+  "model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "prompt_tokens": 581,
+  "cached_tokens": 0,
+  "completion_tokens": 300,
+  "cost_cny": 0.003562,
+  "wall_clock_s": 19.670015699997748,
+  "content": "**Strategic hint:** The bottleneck is the full O(N·M·D) similarity matrix plus a full sort. Two moves:\n\n1. **Replace `np.linalg.norm` + division with a fused normalization** using `scipy.linalg.blas`/`np.einsum('ij,ij->i', X, X)` for squared norms (avoids two passes and the keepdims broadcast), or better: pre-normalize once and reuse.\n\n2. **Avoid full sort.** Use `np.argpartition(sim, -k, axis=1)[:, -k:]` then a tiny sort of just k elements per row — O(N·M) partition vs O(N·M·log M) sort. This is the dominant win for large M.\n\n**Additional lever:** Compute the similarity matrix as a single `Q_norm @ A_norm.T` GEMM (already done) but consider `dtype=np.float32` for the matmul — cosine top-K ranking is robust to fp32 rounding, roughly 2x faster on GEMM and halves memory bandwidth. Verify tie/ranking stability against reference before locking in.\n\n**If stagnation persists:** Try `torch` with `torch.topk` on GPU-less CPU or `numba`-jitted blocked matmul + argpartition if the harness allows non-numpy deps; otherwise the argpartition + fp32 GEMM combo should push past 100x.",
+  "extra": {}
+}

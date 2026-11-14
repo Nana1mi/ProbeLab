@@ -1,0 +1,29 @@
+{
+  "task": "code",
+  "kind": "local",
+  "target": "cloud_small",
+  "backend": "real",
+  "model": "Qwen/Qwen3.6-35B-A3B",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an autonomous code/solution generator. Output only the requested solution matching specifications without conversational commentary."
+    },
+    {
+      "role": "user",
+      "content": "### TASK\nOptimize batch cosine similarity top-K algorithm against reference implementation.\n\n### COMPLETE TASK CONTEXT & BEST CANDIDATE\nTASK SPECIFICATION:\n- Goal: Optimize batch cosine similarity top-K algorithm against reference implementation.\n- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n- Available libraries: Python standard library (math, random, collections, heapq); stdlib, numpy\n- Execution timeout limit: 15.0 seconds\n\nCURRENT BEST CANDIDATE CODE:\n```python\n\"\"\"Slow reference implementation of batch cosine similarity top-k.\"\"\"\nimport math\n\ndef dot_product(v1, v2):\n    s = 0.0\n    for a, b in zip(v1, v2):\n        s += a * b\n    return s\n\ndef vector_norm(v):\n    s = 0.0\n    for a in v:\n        s += a * a\n    return math.sqrt(s)\n\ndef topk_cosine_sim(A, Q, k):\n    results = []\n    for q in Q:\n        q_norm = vector_norm(q)\n        sims = []\n        for i, a in enumerate(A):\n            a_norm = vector_norm(a)\n            denom = q_norm * a_norm\n            sim = dot_product(q, a) / (denom + 1e-12)\n            sims.append((sim, i))\n        for step in range(k):\n            max_idx = step\n            for j in range(step + 1, len(sims)):\n                if sims[j][0] > sims[max_idx][0]:\n                    max_idx = j\n            sims[step], sims[max_idx] = sims[max_idx], sims[step]\n        results.append([sims[j][1] for j in range(k)])\n    return results\n\n```\n\n### CURRENT STATE\nITERATION: 1\nSTAGNANT_STEPS: 0\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 1.0815 (Speedup: 1.08x)\nLAST_FAILURE_SIGNATURE: success\nDEV_FEEDBACK: Verified speedup: 1.08x (Candidate: 286.8ms, Ref: 310.2ms)\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\n\"\"\"Slow reference implementation of batch cosine similarity top-k.\"\"\"\nimport math\n\ndef dot_product(v1, v2):\n    s = 0.0\n    for a, b in zip(v1, v2):\n        s += a * b\n    return s\n\ndef vector_norm(v):\n    s = 0.0\n    for a in v:\n        s += a * a\n    return math.sqrt(s)\n\ndef topk_cosine_sim(A, Q, k):\n    results = []\n    for q in Q:\n        q_norm = vector_norm(q)\n        sims = []\n        for i, a in enumerate(A):\n            a_norm = vector_norm(a)\n            denom = q_norm * a_norm\n            sim = dot_product(q, a) / (denom + 1e-12)\n            sims.append((sim, i))\n        for step in\n\n### VARIATION ANGLE\nvariation_1_seed_0\n\n### INSTRUCTION\nGenerate the complete revised candidate solution now."
+    },
+    {
+      "role": "user",
+      "content": "Return exactly one JSON object with one string field \"code\". The code must implement the complete Python candidate required above. No explanations, proofs, commentary or markdown. Put the Python implementation directly in \"code\"."
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.6,
+  "extra_body": {
+    "enable_thinking": false,
+    "response_format": {
+      "type": "json_object"
+    }
+  }
+}

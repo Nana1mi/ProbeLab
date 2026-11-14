@@ -1,0 +1,17 @@
+{
+  "chat_url": "http://127.0.0.1:3000/workspace/chats/1e01fa96-edbc-4901-bae9-8f2f169ca858",
+  "deerflow_commit": "3e2489429ff3061489537d7303240fef3f199f83",
+  "agent_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "research_backend": "mock",
+  "actual_tools": [
+    "get_research_report",
+    "get_research_status",
+    "present_files",
+    "start_research"
+  ],
+  "artifacts": [
+    "/mnt/user-data/outputs/vela-run_math_tierlab_4c15db78.html"
+  ],
+  "isolation": "Two non-root read-only Docker containers; no host home or Docker socket mounts.",
+  "model_transport": "Non-streaming provider calls with streamed agent steps; avoids cumulative usage duplication."
+}

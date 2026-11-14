@@ -1,0 +1,38 @@
+{
+  "task": "math",
+  "policy": "all_local",
+  "seed": 0,
+  "controller": {
+    "k_schedule": [
+      1
+    ],
+    "k_init": 1,
+    "local_patience": 1,
+    "stagnation_patience": 4,
+    "max_format_failures": 0,
+    "top_m_for_expensive": 2,
+    "cascade_fail_threshold": 3,
+    "no_widen": true,
+    "enable_lessons": false,
+    "share_lessons_across_runs": false,
+    "enable_diagnose_rung": false,
+    "enable_replan_rung": false,
+    "weak_backend": "cloud_small",
+    "alpha_cny_per_min": 0.006,
+    "noise_threshold": 0.08,
+    "backend": "real",
+    "local_max_tokens": 4096,
+    "hint_max_tokens": 400,
+    "max_feedback_chars": 2400
+  },
+  "budget": {
+    "cloud_budget_cny": 1.0,
+    "max_wall_clock_s": 600.0,
+    "max_steps": 6,
+    "min_delta_per_cny_threshold": 0.01,
+    "recent_r_consultations": 3
+  },
+  "task_options": {},
+  "solve_max_tokens": 4096,
+  "seed_note": "Controller seed is matched; provider sampling is not deterministic."
+}

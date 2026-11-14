@@ -1,0 +1,11 @@
+**Strategic direction: fix the timing anomaly first; the speedup ceiling is gating, not the algorithm.**
+
+1. **Diagnose `suspicious_timing` before optimizing further.** The 1.04x with a rejection implies the harness measured something inconsistent (warmup, import cost, GC, or nondeterministic ordering breaking a correctness/equivalence check mislabeled as timing). Instrument: run the reference and candidate in the same process, report per-call wall time over ≥5 repetitions excluding first call, and verify output equality (indices + tie handling) against reference *before* claiming speedup. If the harness caps speedup (e.g., rejects >Xx), target a modest, stable ~1.5–2x, not maximal.
+
+2. **Correctness contract is the real risk.** Cosine top-K has tie-breaking ambiguity: the reference uses pure-Python accumulation order and likely `sorted`/`argsort` semantics. Match index ordering exactly (stable sort by descending similarity, ties by ascending index) or the equivalence check fails and gets misreported as timing.
+
+3. **Minimal, safe vectorization (not a rewrite):** precompute A's norms once outside the query loop; use `np.asarray` with `dtype=np.float64`; single `Q @ A.T` GEMM; divide by (q_norm * a_norm); use `np.argpartition` for k then stable-sort the k candidates. Avoid float32 (changes tie behavior vs reference). Guard zero-norm vectors to match reference semantics (reference divides by sqrt(0)=0 → inf/nan; replicate or document).
+
+4. **Avoid the anomaly triggers:** no `time`-based tricks, no caching across calls, no threading, no JIT. Keep it a pure, deterministic function.
+
+5. **If speedup stays capped ~1.04x:** the bottleneck is harness overhead (conversion

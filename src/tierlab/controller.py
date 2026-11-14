@@ -37,6 +37,7 @@ from tierlab.prompts import (
     build_local_prompt,
 )
 from tierlab.sandbox import start_sandbox_run
+from tierlab.trace import ResearchTrace
 from tierlab.state_card import format_and_truncate_state_card
 from tierlab.tasks.base import ResearchTask
 from tierlab.types import (
@@ -102,6 +103,9 @@ class ResearchController:
         self._unlogged_local_wall_s = 0.0
         self.last_attempted_candidate = None
         self.gateway = gateway
+        if self.gateway.trace is None:
+            self.gateway.trace = ResearchTrace(ledger.file_path.parent / 'trace.ndjson')
+        self._traced_candidates: set[str] = set()
         self.ledger = ledger
         self.config = config or ControllerConfig()
         self.budget = budget or Budget()
@@ -212,6 +216,7 @@ class ResearchController:
                 break
 
             self.step += 1
+            self.gateway.trace_context = {'step': self.step, 'phase': 'candidate'}
 
             try:
                 if self.policy == PolicyType.ALL_CLOUD:
@@ -240,6 +245,7 @@ class ResearchController:
         # Post-loop held-out final evaluation (#3):
         final_eval = self.task.run_final_evaluation(self.current_best_candidate)
         if final_eval:
+            self._trace_verification(self.current_best_candidate, final_eval, 'held_out', 'final')
             self._record(
                 LedgerEntry(
                     run=self.run_id,
@@ -284,8 +290,24 @@ class ResearchController:
     def _verify_candidate(self, candidate: Candidate) -> list[VerificationResult]:
         self.last_attempted_candidate = candidate
         results = self.task.run_ladder(candidate)
+        for index, result in enumerate(results):
+            name = self.task.ladder[index].name if index < len(self.task.ladder) else 'candidate'
+            self._trace_verification(candidate, result, name)
         self.recent_results = results
         return results
+
+    def _trace_candidate(self, candidate: Candidate) -> None:
+        if candidate.id not in self._traced_candidates:
+            self._traced_candidates.add(candidate.id)
+            self.gateway.trace.record('candidate', step=self.step, candidate_id=candidate.id,
+                                      call_id=candidate.metadata.get('trace_call_id'), code=candidate.content)
+
+    def _trace_verification(self, candidate: Candidate, result: VerificationResult,
+                            verifier: str, stage: str = 'dev') -> None:
+        self._trace_candidate(candidate)
+        self.gateway.trace.record('verification', step=self.step, candidate_id=candidate.id,
+                                  call_id=candidate.metadata.get('trace_call_id'),
+                                  verifier=verifier, stage=stage, result=result.model_dump())
 
     def _duplicate_feedback(self) -> None:
         previous = self.recent_results[-1] if self.recent_results else None
@@ -312,11 +334,19 @@ class ResearchController:
             "local": sum(r.target == "local" for r in calls),
         }
         self._ledger_call_cursor = len(self.gateway.call_history)
-        if self.recent_results:
+        entry.extra['model_calls_by_target'] = {target: sum(r.target == target for r in calls)
+                                                for target in ('local', 'cloud_small', 'cloud')}
+        if self.recent_results and entry.action != ActionType.FINAL_EVAL:
             result = self.recent_results[-1]
             entry.extra.setdefault("failure_signature", result.failure_signature)
             entry.extra.setdefault("feedback", result.feedback[:self.config.max_feedback_chars])
         self.ledger.record(entry)
+        self.gateway.trace.record('decision', step=self.step, action=entry.action,
+                                  trigger=entry.trigger, score_before=entry.score_before,
+                                  score_after=entry.score_after,
+                                  accepted_candidate_id=(self.current_best_candidate.id if entry.verified else None),
+                                  feedback=entry.extra.get('feedback'),
+                                  failure_signature=entry.extra.get('failure_signature'))
 
     def _compute_weak_call_costs(
         self,
@@ -570,7 +600,7 @@ class ResearchController:
             solve_cand = Candidate(
                 id=f"cand_cloud_solve_{self.step}",
                 content=cleaned_code,
-                metadata={"origin": "cloud_solve", "step": self.step},
+                metadata={"origin": "cloud_solve", "step": self.step, 'trace_call_id': consult_record.extra.get('trace_call_id')},
             )
             h = hash_candidate(solve_cand.content)
             is_dup = h in self.seen_candidate_hashes
@@ -693,7 +723,7 @@ class ResearchController:
         candidate = Candidate(
             id=f"cand_cloud_{self.step}",
             content=cleaned_code,
-            metadata={"step": self.step, "origin": "cloud"},
+            metadata={"step": self.step, "origin": "cloud", 'trace_call_id': record.extra.get('trace_call_id')},
         )
 
         h = hash_candidate(candidate.content)
@@ -926,7 +956,8 @@ class ResearchController:
             )
 
             cleaned_code = self.task.extract_candidate(rec.content)
-            cand = Candidate(id=f"cand_takeover_{self.step}", content=cleaned_code)
+            cand = Candidate(id=f"cand_takeover_{self.step}", content=cleaned_code,
+                             metadata={'trace_call_id': rec.extra.get('trace_call_id')})
             h = hash_candidate(cand.content)
             is_dup = h in self.seen_candidate_hashes
             self.seen_candidate_hashes.add(h)
@@ -1073,6 +1104,8 @@ class ResearchController:
     ) -> tuple[list[Candidate], float, list[GatewayCallRecord]]:
         """Launch K concurrent calls to weak model backend (local or cloud_small) (#8, #15)."""
         target = self.config.weak_backend
+        self.gateway.trace_context = {'step': self.step, 'phase': 'candidate',
+                                      'guidance_ref': self.pending_hint_id if cloud_guidance else None}
         t0 = time.perf_counter()
 
         # Pre-flight budget reservation for concurrent calls before creating coroutines (#15)
@@ -1149,7 +1182,7 @@ class ResearchController:
                 Candidate(
                     id=f"cand_{self.step}_{i}",
                     content=cleaned,
-                    metadata={"step": self.step, "worker_idx": i},
+                    metadata={"step": self.step, "worker_idx": i, 'trace_call_id': rec.extra.get('trace_call_id')},
                 )
             )
         return cands, total_wall_s, records
@@ -1164,6 +1197,7 @@ class ResearchController:
         evaluated_pairs: list[tuple[Candidate, list[VerificationResult]]] = []
 
         for cand in cands:
+            self._trace_candidate(cand)
             h = hash_candidate(cand.content)
             if h in self.seen_candidate_hashes:
                 any_duplicates = True
@@ -1180,6 +1214,7 @@ class ResearchController:
                 if verifier.is_expensive:
                     break
                 v_res = verifier.verify(cand)
+                self._trace_verification(cand, v_res, verifier.name)
                 results.append(v_res)
                 if not v_res.valid:
                     passed_cheap = False
@@ -1220,6 +1255,7 @@ class ResearchController:
             full_results = list(res_list)
             for ev in expensive_verifiers:
                 ev_res = ev.verify(cand)
+                self._trace_verification(cand, ev_res, ev.name)
                 full_results.append(ev_res)
                 if not ev_res.valid:
                     break
@@ -1235,6 +1271,7 @@ class ResearchController:
         return best_cand, best_score, best_results, any_duplicates
 
     async def _execute_consultation(self, rung: ConsultationRung, state_card: str) -> Any:
+        self.gateway.trace_context = {'step': self.step, 'phase': rung.value}
         state_card = format_and_truncate_state_card(self._state_for_prompt(), self.config.max_feedback_chars).content
         failure_detail = None
         if self.recent_results:

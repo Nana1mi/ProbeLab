@@ -1,0 +1,28 @@
+{
+  "verifier": "code_l0_visible",
+  "candidate": {
+    "id": "cand_cloud_solve_4",
+    "content": "import numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    A_np = np.asarray(A, dtype=np.float32)\n    Q_np = np.asarray(Q, dtype=np.float32)\n\n    M = A_np.shape[0]\n    N = Q_np.shape[0]\n\n    if k >= M:\n        # Normalize then compute full similarity matrix and full sort\n        A_norms = np.sqrt(np.einsum('ij,ij->i', A_np, A_np))\n        Q_norms = np.sqrt(np.einsum('ij,ij->i', Q_np, Q_np))\n        A_norms = np.maximum(A_norms, 1e-10)\n        Q_norms = np.maximum(Q_norms, 1e-10)\n        A_norm = A_np / A_norms[:, None]\n        Q_norm = Q_np / Q_norms[:, None]\n        sims = Q_norm @ A_norm.T\n        top_indices = np.argsort(-sims, axis=1)[:, :k]\n        return [row.tolist() for row in top_indices]\n\n    # Normalize A and Q in-place where possible\n    A_norms = np.sqrt(np.einsum('ij,ij->i', A_np, A_np))\n    Q_norms = np.sqrt(np.einsum('ij,ij->i', Q_np, Q_np))\n    A_norms = np.maximum(A_norms, 1e-10)\n    Q_norms = np.maximum(Q_norms, 1e-10)\n    A_norm = A_np / A_norms[:, None]\n    Q_norm = Q_np / Q_norms[:, None]\n\n    # Compute similarity matrix (N x M)\n    sims = Q_norm @ A_norm.T\n\n    # Use argpartition to find top-k per row, then sort those k\n    part_idx = np.argpartition(sims, M - k, axis=1)[:, M - k:]\n    top_k_sims = np.take_along_axis(sims, part_idx, axis=1)\n    order = np.argsort(-top_k_sims, axis=1)\n    top_indices = np.take_along_axis(part_idx, order, axis=1)\n\n    return [row.tolist() for row in top_indices]",
+    "metadata": {
+      "origin": "cloud_solve",
+      "step": 4
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.2,
+    "feedback": "Visible test passed",
+    "evidence": {
+      "status": "ok",
+      "ans": [
+        [
+          0
+        ]
+      ],
+      "elapsed_s": 0.0001965000010386575,
+      "parent_elapsed_s": 0.19231239999862737
+    },
+    "elapsed_s": 0.1950665999975172,
+    "failure_signature": null
+  }
+}

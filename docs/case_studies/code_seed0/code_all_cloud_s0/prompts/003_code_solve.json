@@ -1,0 +1,29 @@
+{
+  "task": "code",
+  "kind": "solve",
+  "target": "cloud",
+  "backend": "real",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Directly implement the complete solution to achieve verified improvement. Output complete, valid code or data matching the task specifications."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 3\nSTAGNANT_STEPS: 1\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 74.7273 (Speedup: 74.73x)\nLAST_FAILURE_SIGNATURE: success\nDEV_FEEDBACK: Verified speedup: 54.02x (Candidate: 5.1ms, Ref: 276.6ms)\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\nimport numpy as np\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    M = A_arr.shape[0]\n    N = Q_arr.shape[0]\n    if k <= 0 or M == 0:\n        return [[] for _ in range(N)]\n    k = min(k, M)\n    a_norms = np.linalg.norm(A_arr, axis=1)\n    q_norms = np.linalg.norm(Q_arr, axis=1)\n    denom = np.outer(q_norms, a_norms) + 1e-12\n    sims = (Q_arr @ A_arr.T) / denom\n    if k < M:\n        part = np.argpartition(-sims, k - 1, axis=1)[:, :k]\n    else:\n        part = np.tile(np.arange(M), (N, 1))\n    part_sims = np.take_along_axis\n### FULL TASK SPECIFICATIONS & CURRENT BEST\nTASK SPECIFICATION:\n- Goal: Optimize batch cosine similarity top-K algorithm against reference implementation.\n- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n- Available libraries: Python standard library (math, random, collections, heapq); stdlib, numpy\n- Execution timeout limit: 15.0 seconds\n\nCURRENT BEST CANDIDATE CODE:\n```python\nimport numpy as np\nimport heapq\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    M = A_arr.shape[0]\n    if k <= 0 or M == 0:\n        return [[] for _ in range(Q_arr.shape[0])]\n    k = min(k, M)\n    a_norms = np.linalg.norm(A_arr, axis=1)\n    q_norms = np.linalg.norm(Q_arr, axis=1)\n    denom = np.outer(q_norms, a_norms) + 1e-12\n    sims = (Q_arr @ A_arr.T) / denom\n    results = []\n    for row in sims:\n        if k < M:\n            top = np.argpartition(-row, k - 1)[:k]\n        else:\n            top = np.arange(M)\n        order = np.argsort(-row[top], kind='stable')\n        results.append(top[order].tolist())\n    return results\n```\n\n### INSTRUCTION\nDirectly generate the complete improved candidate solution code/JSON now."
+    },
+    {
+      "role": "user",
+      "content": "Return exactly one JSON object with one string field \"code\". The code must implement the complete Python candidate required above. No explanations, proofs, commentary or markdown. Put the Python implementation directly in \"code\"."
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false,
+    "response_format": {
+      "type": "json_object"
+    }
+  }
+}

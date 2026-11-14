@@ -1,0 +1,24 @@
+{
+  "verifier": "code_l2_speedup",
+  "candidate": {
+    "id": "cand_cloud_6",
+    "content": "import numpy as np\n\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    N = Q_arr.shape[0]\n    M = A_arr.shape[0]\n    if k <= 0 or M == 0 or N == 0:\n        return [[] for _ in range(N)]\n    kk = min(k, M)\n\n    # Normalize database and queries to unit length; cosine = dot product of unit vectors.\n    a_norms = np.sqrt(np.einsum('ij,ij->i', A_arr, A_arr))\n    q_norms = np.sqrt(np.einsum('ij,ij->i', Q_arr, Q_arr))\n    a_norms[a_norms == 0] = 1.0\n    q_norms[q_norms == 0] = 1.0\n    A_n = A_arr / a_norms[:, None]\n    Q_n = Q_arr / q_norms[:, None]\n\n    sims = Q_n @ A_n.T  # N x M\n\n    if kk < M:\n        idx = np.argpartition(-sims, kk - 1, axis=1)[:, :kk]\n    else:\n        idx = np.broadcast_to(np.arange(M), (N, M)).copy()\n\n    # Sort only the selected candidates descending by similarity.\n    sel = np.take_along_axis(sims, idx, axis=1)\n    order = np.argsort(-sel, axis=1, kind='stable')\n    idx = np.take_along_axis(idx, order, axis=1)\n\n    return idx.tolist()",
+    "metadata": {
+      "step": 6,
+      "origin": "cloud"
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 53.7151,
+    "feedback": "Verified speedup: 53.72x (Candidate: 5.2ms, Ref: 280.0ms)",
+    "evidence": {
+      "speedup": 53.7151,
+      "ref_med_s": 0.28,
+      "cand_med_s": 0.0052,
+      "significant": true
+    },
+    "elapsed_s": 1.9768216000011307,
+    "failure_signature": null
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "verifier": "code_l0_visible",
+  "candidate": {
+    "id": "cand_cloud_1",
+    "content": "import numpy as np\nimport heapq\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    M = A_arr.shape[0]\n    if k <= 0 or M == 0:\n        return [[] for _ in range(Q_arr.shape[0])]\n    k = min(k, M)\n    a_norms = np.linalg.norm(A_arr, axis=1)\n    q_norms = np.linalg.norm(Q_arr, axis=1)\n    denom = np.outer(q_norms, a_norms) + 1e-12\n    sims = (Q_arr @ A_arr.T) / denom\n    results = []\n    for row in sims:\n        if k < M:\n            top = np.argpartition(-row, k - 1)[:k]\n        else:\n            top = np.arange(M)\n        order = np.argsort(-row[top], kind='stable')\n        results.append(top[order].tolist())\n    return results",
+    "metadata": {
+      "step": 1,
+      "origin": "cloud"
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.2,
+    "feedback": "Visible test passed",
+    "evidence": {
+      "status": "ok",
+      "ans": [
+        [
+          0
+        ]
+      ],
+      "elapsed_s": 0.0001692000005277805,
+      "parent_elapsed_s": 0.1884066000020539
+    },
+    "elapsed_s": 0.19121660000018892,
+    "failure_signature": null
+  }
+}

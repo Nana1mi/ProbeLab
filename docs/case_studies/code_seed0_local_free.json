@@ -1,0 +1,56 @@
+{
+  "scenario": "Post-run sensitivity analysis requested by user: weak-model cost zero; strong-model API costs retained.",
+  "formula": "sum(call.cost_cny for call in calls if call.target == cloud)",
+  "not_measured": [
+    "Local model generation latency",
+    "Local GPU costs; set to zero by assumption"
+  ],
+  "no_new_model_calls": true,
+  "rows": [
+    {
+      "policy": "all_local",
+      "source_calls_file": "docs/case_studies/code_seed0/code_all_local_s0/calls.json",
+      "source_sha256": "8ea874d47019f5dbc76cf3e8620e73daf0e7d2c92035727aae6aee60743834d3",
+      "strong_calls": 0,
+      "weak_calls": 6,
+      "original_strong_cost_cny": 0.0,
+      "original_weak_cost_cny": 0.0725148,
+      "local_free_cost_cny": 0.0,
+      "median_candidate_ms": 2.7206999984628055,
+      "correct_inputs": 5,
+      "tested_inputs": 5
+    },
+    {
+      "policy": "all_cloud",
+      "source_calls_file": "docs/case_studies/code_seed0/code_all_cloud_s0/calls.json",
+      "source_sha256": "a18e77afa0c67082ebeb6f0b73180d0d0412236c1e368df2f3a549efae38c4ec",
+      "strong_calls": 6,
+      "weak_calls": 0,
+      "original_strong_cost_cny": 0.02877,
+      "original_weak_cost_cny": 0.0,
+      "local_free_cost_cny": 0.02877,
+      "median_candidate_ms": 2.753700002358528,
+      "correct_inputs": 5,
+      "tested_inputs": 5
+    },
+    {
+      "policy": "tierlab",
+      "source_calls_file": "docs/case_studies/code_seed0/code_tierlab_s0/calls.json",
+      "source_sha256": "f2db8ec6e6ddc56fb3aecd537b212858186a59ce20e1cc7ed82f26b4b75db4b1",
+      "strong_calls": 2,
+      "weak_calls": 5,
+      "original_strong_cost_cny": 0.010875999999999999,
+      "original_weak_cost_cny": 0.0513756,
+      "local_free_cost_cny": 0.010875999999999999,
+      "median_candidate_ms": 2.3927000002004206,
+      "correct_inputs": 5,
+      "tested_inputs": 5
+    }
+  ],
+  "comparison": {
+    "cost_reduction_vs_all_cloud": 0.6219673270768162,
+    "strong_call_reduction_vs_all_cloud": 0.6666666666666667,
+    "program_runtime_reduction_vs_all_cloud": 0.13109634377343682,
+    "program_runtime_reduction_vs_all_local": 0.1205572089711121
+  }
+}

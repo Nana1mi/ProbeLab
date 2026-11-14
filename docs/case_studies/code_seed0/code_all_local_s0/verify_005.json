@@ -1,0 +1,28 @@
+{
+  "verifier": "code_l0_visible",
+  "candidate": {
+    "id": "cand_3_0",
+    "content": "\"\"\"Optimized batch cosine similarity top-k using numpy.\"\"\"\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    M = A_np.shape[0]\n    N = Q_np.shape[0]\n    \n    if M == 0 or N == 0:\n        return [[] for _ in range(N)]\n    \n    effective_k = min(k, M)\n    \n    # Compute norms\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    A_norms = np.where(A_norms == 0, 1.0, A_norms)\n    A_normalized = A_np / A_norms\n    \n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    Q_norms = np.where(Q_norms == 0, 1.0, Q_norms)\n    Q_normalized = Q_np / Q_norms\n    \n    # Compute cosine similarity matrix: (N, M)\n    sim_matrix = np.dot(Q_normalized, A_normalized.T)\n    \n    # Find top-k indices for each query\n    results = []\n    \n    if effective_k == M:\n        # If k >= M, sort all and reverse\n        sorted_indices = np.argsort(sim_matrix, axis=1)[:, ::-1]\n        results = [row.tolist() for row in sorted_indices]\n    else:\n        # Use argpartition for efficiency\n        # We want the largest k elements.\n        # argpartition with kth=M-k puts the M-k-th smallest element in its sorted position.\n        # Elements to the left are smaller, elements to the right are larger.\n        # So the last k elements are the largest k (unsorted among themselves).\n        # We then sort those k elements descending.\n        \n        # Partition indices such that the element at index M-k is in final sorted position.\n        # Indices before M-k are <=, indices after are >=.\n        # We want the largest k, so we look at indices [M-k: M].\n        partition_indices = np.argpartition(sim_matrix, M - effective_k, axis=1)\n        \n        # Extract the candidate top-k indices for each row\n        # These are the last k indices from the partition result for each row\n        top_k_candidates = partition_indices[:, M - effective_k:]\n        \n        # For each row, we need to sort these k candidates by their similarity score descending\n        # To do this efficiently without a python loop over N rows if possible, \n        # we can gather the scores and sort.\n        \n        # Gather scores for the candidate indices\n        # sim_matrix[i, top_k_candidates[i, j]]\n        # This is tricky to vectorize directly for sorting.\n        \n        # Let's iterate N rows, it's usually fast enough if N is not huge.\n        # Or use a more vectorized approach:\n        # 1. Get the scores for the partitioned chunks\n        # 2. Sort the indices based on scores\n        \n        # Vectorized approach:\n        # Create an array of indices [0..M-1] for each row\n        # But we only care about the top k.\n        \n        # Let's try: sort the whole row? No, too slow if M is large.\n        # Let's try: argpartition then sort the k elements.\n        \n        # Since N can be large, let's optimize the inner loop.\n        # We can gather the scores for the top-k candidates.\n        # scores.shape = (N, k)\n        scores = np.take_along_axis(sim_matrix, top_k_candidates, axis=1)\n        \n        # Now we need to sort the indices in top_k_candidates based on scores descending.\n        # We can use argsort on scores along axis=1, then apply that permutation to top_k_candidates.\n        sort_order = np.argsort(scores, axis=1)[:, ::-1] # descending\n        \n        # Apply the sort order to the candidate indices\n        # top_k_candidates shape (N, k), sort_order shape (N, k)\n        # We want result[i, j] = top_k_candidates[i, sort_order[i, j]]\n        final_indices = np.take_along_axis(top_k_candidates, sort_order, axis=1)\n        \n        results = [row.tolist() for row in final_indices]\n        \n    return results",
+    "metadata": {
+      "step": 3,
+      "worker_idx": 0
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.2,
+    "feedback": "Visible test passed",
+    "evidence": {
+      "status": "ok",
+      "ans": [
+        [
+          0
+        ]
+      ],
+      "elapsed_s": 0.00017800000205170363,
+      "parent_elapsed_s": 0.19145260000004782
+    },
+    "elapsed_s": 0.19419339999876684,
+    "failure_signature": null
+  }
+}

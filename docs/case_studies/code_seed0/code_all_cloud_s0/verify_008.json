@@ -1,0 +1,21 @@
+{
+  "verifier": "code_l1_correctness",
+  "candidate": {
+    "id": "cand_cloud_3",
+    "content": "import numpy as np\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    N = Q_arr.shape[0]\n    M = A_arr.shape[0]\n    if k <= 0 or M == 0 or N == 0:\n        return [[] for _ in range(N)]\n    kk = min(k, M)\n\n    # Normalize database and queries to unit length; cosine = dot product of unit vectors.\n    a_norms = np.linalg.norm(A_arr, axis=1)\n    q_norms = np.linalg.norm(Q_arr, axis=1)\n    a_norms[a_norms == 0] = 1.0\n    q_norms[q_norms == 0] = 1.0\n    A_n = A_arr / a_norms[:, None]\n    Q_n = Q_arr / q_norms[:, None]\n\n    sims = Q_n @ A_n.T  # N x M\n\n    if kk < M:\n        # Partition in place along last axis to isolate top-kk candidates.\n        idx = np.argpartition(-sims, kk - 1, axis=1)[:, :kk]\n    else:\n        idx = np.broadcast_to(np.arange(M), (N, M)).copy()\n\n    # Sort the selected candidates descending by similarity.\n    sel = np.take_along_axis(sims, idx, axis=1)\n    order = np.argsort(-sel, axis=1, kind='stable')\n    idx = np.take_along_axis(idx, order, axis=1)\n\n    return idx.tolist()",
+    "metadata": {
+      "step": 3,
+      "origin": "cloud"
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.5,
+    "feedback": "Dev hidden input correctness test passed with reference equality",
+    "evidence": {
+      "status": "ok"
+    },
+    "elapsed_s": 0.2599495000031311,
+    "failure_signature": null
+  }
+}

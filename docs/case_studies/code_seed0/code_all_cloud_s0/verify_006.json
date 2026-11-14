@@ -1,0 +1,24 @@
+{
+  "verifier": "code_l2_speedup",
+  "candidate": {
+    "id": "cand_cloud_2",
+    "content": "import numpy as np\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    M = A_arr.shape[0]\n    N = Q_arr.shape[0]\n    if k <= 0 or M == 0:\n        return [[] for _ in range(N)]\n    k = min(k, M)\n    a_norms = np.linalg.norm(A_arr, axis=1)\n    q_norms = np.linalg.norm(Q_arr, axis=1)\n    denom = np.outer(q_norms, a_norms) + 1e-12\n    sims = (Q_arr @ A_arr.T) / denom\n    if k < M:\n        part = np.argpartition(-sims, k - 1, axis=1)[:, :k]\n    else:\n        part = np.tile(np.arange(M), (N, 1))\n    part_sims = np.take_along_axis(sims, part, axis=1)\n    order = np.argsort(-part_sims, axis=1, kind='stable')\n    top = np.take_along_axis(part, order, axis=1)\n    return top.tolist()",
+    "metadata": {
+      "step": 2,
+      "origin": "cloud"
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 54.0192,
+    "feedback": "Verified speedup: 54.02x (Candidate: 5.1ms, Ref: 276.6ms)",
+    "evidence": {
+      "speedup": 54.0192,
+      "ref_med_s": 0.2766,
+      "cand_med_s": 0.0051,
+      "significant": true
+    },
+    "elapsed_s": 1.9222100000006321,
+    "failure_signature": null
+  }
+}

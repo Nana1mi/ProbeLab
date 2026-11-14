@@ -1,0 +1,894 @@
+{
+  "run_id": "run_code_tierlab_173ea03f",
+  "task": "code",
+  "status": "completed",
+  "backend": "real",
+  "summary": {
+    "run": "run_code_tierlab_173ea03f",
+    "policy": "tierlab",
+    "seed": 0,
+    "config_hash": "b2e6d365de",
+    "total_steps": 5,
+    "final_score": 2.0454,
+    "total_cloud_cny": 0.11053,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 193.34,
+    "total_gpu_lease_cny": 0.0,
+    "total_verify_s": 2.512,
+    "total_cloud_tokens": 18319,
+    "ba_auc": 1.7608,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.019712,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 1,
+        "total_delta": 1.9177,
+        "total_cost_cny": 0.040698,
+        "roi_delta_per_cny": 47.12
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 9,
+    "local_calls": 0,
+    "small_model_calls": 7,
+    "strong_model_calls": 2,
+    "stop_reason": "consultation_ladder_exhausted"
+  },
+  "stats": {
+    "small": {
+      "calls": 7,
+      "cost_cny": 0.101506,
+      "completed": 7,
+      "models": [
+        "Qwen/Qwen3.6-35B-A3B"
+      ]
+    },
+    "strong": {
+      "calls": 2,
+      "cost_cny": 0.009024,
+      "completed": 2,
+      "models": [
+        "deepseek-ai/DeepSeek-V4.1-Flash"
+      ]
+    }
+  },
+  "legacy": false,
+  "events": [
+    {
+      "step": 0,
+      "candidate_id": "cand_code_initial",
+      "call_id": null,
+      "id": 1,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:38:46.552450+00:00"
+    },
+    {
+      "step": 0,
+      "candidate_id": "cand_code_initial",
+      "call_id": null,
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 2,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:38:46.552739+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.04680555000231834,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 0,
+      "candidate_id": "cand_code_initial",
+      "call_id": null,
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 3,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:38:46.552846+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.09113228900241666,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 0,
+      "candidate_id": "cand_code_initial",
+      "call_id": null,
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 4,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:38:46.552912+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.1,
+        "feedback": "Speedup 1.06x is within noise threshold (1.08x)",
+        "elapsed_s": 2.490445309995266,
+        "failure_signature": "code/insufficient_speedup"
+      }
+    },
+    {
+      "step": 1,
+      "phase": "candidate",
+      "guidance_ref": null,
+      "call_id": "call_1",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 5,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:38:46.554096+00:00"
+    },
+    {
+      "step": 1,
+      "phase": "candidate",
+      "guidance_ref": null,
+      "call_id": "call_1",
+      "cost_cny": 0.0121896,
+      "elapsed_s": 11.61191436900117,
+      "prompt_tokens": 892,
+      "completion_tokens": 980,
+      "failure_signature": null,
+      "id": 6,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:38:58.166271+00:00",
+      "excerpt": "{\n  \"code\": \"import numpy as np\\nimport heapq\\n\\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\\n    # Convert lists to numpy arrays for vectorized operations\\n    A_np = np.array(A, dtype=np.flo"
+    },
+    {
+      "step": 1,
+      "candidate_id": "cand_1_0",
+      "call_id": "call_1",
+      "id": 7,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:38:58.166819+00:00"
+    },
+    {
+      "step": 1,
+      "candidate_id": "cand_1_0",
+      "call_id": "call_1",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 8,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:38:58.597738+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.4305689069951768,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 1,
+      "candidate_id": "cand_1_0",
+      "call_id": "call_1",
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 9,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:38:58.982992+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.3850062300043646,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 1,
+      "candidate_id": "cand_1_0",
+      "call_id": "call_1",
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 10,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:39:01.985637+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+        "elapsed_s": 3.0023088739981176,
+        "failure_signature": "code/suspicious_timing"
+      }
+    },
+    {
+      "step": 1,
+      "action": "widen",
+      "trigger": "stagnation_local_patience(1/2)",
+      "score_before": 0.1,
+      "score_after": 0.1,
+      "accepted_candidate_id": null,
+      "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+      "failure_signature": "code/suspicious_timing",
+      "id": 11,
+      "kind": "decision",
+      "timestamp": "2026-11-14T14:39:01.986557+00:00"
+    },
+    {
+      "step": 2,
+      "phase": "candidate",
+      "guidance_ref": null,
+      "call_id": "call_2",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 12,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:39:01.986941+00:00"
+    },
+    {
+      "step": 2,
+      "phase": "candidate",
+      "guidance_ref": null,
+      "call_id": "call_3",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 13,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:39:01.989361+00:00"
+    },
+    {
+      "step": 2,
+      "phase": "candidate",
+      "guidance_ref": null,
+      "call_id": "call_2",
+      "cost_cny": 0.0081882,
+      "elapsed_s": 7.861551786001655,
+      "prompt_tokens": 871,
+      "completion_tokens": 613,
+      "failure_signature": null,
+      "id": 14,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:39:07.090142+00:00",
+      "excerpt": "{\n  \"code\": \"import numpy as np\\nimport heapq\\n\\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\\n    A_np = np.array(A, dtype=np.float64)\\n    Q_np = np.array(Q, dtype=np.float64)\\n    \\n    # Co"
+    },
+    {
+      "step": 2,
+      "phase": "candidate",
+      "guidance_ref": null,
+      "call_id": "call_3",
+      "cost_cny": 0.007108200000000001,
+      "elapsed_s": 128.8343800080038,
+      "prompt_tokens": 871,
+      "completion_tokens": 513,
+      "failure_signature": null,
+      "id": 15,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:40:57.197733+00:00",
+      "excerpt": "{\n  \"code\": \"import numpy as np\\nimport heapq\\n\\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\\n    # Convert lists to numpy arrays for vectorized operations\\n    A_np = np.array(A, dtype=np.flo"
+    },
+    {
+      "step": 2,
+      "candidate_id": "cand_2_0",
+      "call_id": "call_2",
+      "id": 16,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:40:57.198040+00:00"
+    },
+    {
+      "step": 2,
+      "candidate_id": "cand_2_0",
+      "call_id": "call_2",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 17,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:40:57.538770+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.34055390900175553,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 2,
+      "candidate_id": "cand_2_0",
+      "call_id": "call_2",
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 18,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:40:57.935498+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.3965300859999843,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 2,
+      "candidate_id": "cand_2_1",
+      "call_id": "call_3",
+      "id": 19,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:40:57.935652+00:00"
+    },
+    {
+      "step": 2,
+      "candidate_id": "cand_2_1",
+      "call_id": "call_3",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 20,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:40:58.319811+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Visible test failed: expected [[0]], got None",
+        "elapsed_s": 0.38394688600237714,
+        "failure_signature": "code/visible_test_failure"
+      }
+    },
+    {
+      "step": 2,
+      "candidate_id": "cand_2_0",
+      "call_id": "call_2",
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 21,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:00.458082+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+        "elapsed_s": 2.138000657003431,
+        "failure_signature": "code/suspicious_timing"
+      }
+    },
+    {
+      "step": 2,
+      "phase": "hint",
+      "call_id": "call_4",
+      "role": "strong",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "target": "cloud",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 400,
+      "id": 22,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:41:00.458445+00:00"
+    },
+    {
+      "step": 2,
+      "phase": "hint",
+      "call_id": "call_4",
+      "cost_cny": 0.004416,
+      "elapsed_s": 7.2001213890034705,
+      "prompt_tokens": 620,
+      "completion_tokens": 397,
+      "failure_signature": null,
+      "id": 23,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:41:07.658701+00:00",
+      "excerpt": "**Strategic hint:** The rejection is `code/suspicious_timing` — speedup above the configured limit. Do not chase more raw speed; you are being penalized for *looking* too fast. Two moves:\n\n1. **Diagnose the ceiling.** The configured speedup"
+    },
+    {
+      "step": 2,
+      "action": "hint",
+      "trigger": "escalation_hint",
+      "score_before": 0.1,
+      "score_after": 0.1,
+      "accepted_candidate_id": null,
+      "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+      "failure_signature": "code/suspicious_timing",
+      "id": 24,
+      "kind": "decision",
+      "timestamp": "2026-11-14T14:41:07.659019+00:00"
+    },
+    {
+      "step": 3,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_5",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 25,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:41:07.659165+00:00"
+    },
+    {
+      "step": 3,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_6",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 26,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:41:07.660267+00:00"
+    },
+    {
+      "step": 3,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_5",
+      "cost_cny": 0.0143136,
+      "elapsed_s": 15.179366433003452,
+      "prompt_tokens": 1310,
+      "completion_tokens": 1107,
+      "failure_signature": null,
+      "id": 27,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:41:20.114833+00:00",
+      "excerpt": "{\n\"code\": \"import numpy as np\\nimport os\\n\\n# Set OpenMP threads to 1 to ensure deterministic timing and avoid BLAS overhead spikes\\nos.environ['OMP_NUM_THREADS'] = '1'\\nos.environ['MKL_NUM_THREADS'] = '1'\\n\\ndef topk_cosine_sim(A: list[lis"
+    },
+    {
+      "step": 3,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_6",
+      "cost_cny": 0.0217764,
+      "elapsed_s": 19.92898704599793,
+      "prompt_tokens": 1310,
+      "completion_tokens": 1798,
+      "failure_signature": null,
+      "id": 28,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:41:24.865547+00:00",
+      "excerpt": "{\n  \"code\": \"import numpy as np\\nimport os\\n\\n# Set environment variables to limit BLAS threading to ensure deterministic timing\\nos.environ['OMP_NUM_THREADS'] = '1'\\nos.environ['MKL_NUM_THREADS'] = '1'\\n\\ndef topk_cosine_sim(A: list[list[f"
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_0",
+      "call_id": "call_5",
+      "id": 29,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:41:24.865841+00:00"
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_0",
+      "call_id": "call_5",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 30,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:25.210330+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.344212724994577,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_0",
+      "call_id": "call_5",
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 31,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:25.598688+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.3881259379995754,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_1",
+      "call_id": "call_6",
+      "id": 32,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:41:25.598836+00:00"
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_1",
+      "call_id": "call_6",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 33,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:25.936323+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.3371409160026815,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_1",
+      "call_id": "call_6",
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 34,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:26.304723+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.36820424100005766,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_0",
+      "call_id": "call_5",
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 35,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:28.338130+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+        "elapsed_s": 2.03311004400166,
+        "failure_signature": "code/suspicious_timing"
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_3_1",
+      "call_id": "call_6",
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 36,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:29.742278+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+        "elapsed_s": 1.4036047620029422,
+        "failure_signature": "code/suspicious_timing"
+      }
+    },
+    {
+      "step": 3,
+      "phase": "solve",
+      "call_id": "call_7",
+      "role": "strong",
+      "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "target": "cloud",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 2048,
+      "id": 37,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:41:29.742674+00:00"
+    },
+    {
+      "step": 3,
+      "phase": "solve",
+      "call_id": "call_7",
+      "cost_cny": 0.004608,
+      "elapsed_s": 3.5185980550013483,
+      "prompt_tokens": 912,
+      "completion_tokens": 348,
+      "failure_signature": null,
+      "id": 38,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:41:33.261412+00:00",
+      "excerpt": "{\"code\": \"import math\\nimport heapq\\n\\ndef topk_cosine_sim(A, Q, k):\\n    M = len(A)\\n    D = len(A[0]) if M else 0\\n    # Precompute norms of A once\\n    norms_A = [0.0] * M\\n    for i in range(M):\\n        a = A[i]\\n        s = 0.0\\n     "
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_cloud_solve_3",
+      "call_id": "call_7",
+      "id": 39,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:41:35.184392+00:00"
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_cloud_solve_3",
+      "call_id": "call_7",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 40,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:35.184543+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.027808188999188133,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_cloud_solve_3",
+      "call_id": "call_7",
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 41,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:35.184598+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.058320295000157785,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "candidate_id": "cand_cloud_solve_3",
+      "call_id": "call_7",
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 42,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:35.184639+00:00",
+      "result": {
+        "valid": true,
+        "score": 2.0177,
+        "feedback": "Verified speedup: 2.02x (Candidate: 172.4ms, Ref: 347.9ms)",
+        "elapsed_s": 1.8364083229971584,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 3,
+      "action": "solve",
+      "trigger": "escalation_solve",
+      "score_before": 0.1,
+      "score_after": 2.0177,
+      "accepted_candidate_id": "cand_cloud_solve_3",
+      "feedback": "Verified speedup: 2.02x (Candidate: 172.4ms, Ref: 347.9ms)",
+      "failure_signature": null,
+      "id": 43,
+      "kind": "decision",
+      "timestamp": "2026-11-14T14:41:35.184785+00:00"
+    },
+    {
+      "step": 4,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_8",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 44,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:41:35.184982+00:00"
+    },
+    {
+      "step": 4,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_9",
+      "role": "small",
+      "model": "Qwen/Qwen3.6-35B-A3B",
+      "target": "cloud_small",
+      "backend": "real",
+      "task": "code",
+      "max_tokens": 4096,
+      "id": 45,
+      "kind": "model_started",
+      "timestamp": "2026-11-14T14:41:35.186272+00:00"
+    },
+    {
+      "step": 4,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_8",
+      "cost_cny": 0.0146718,
+      "elapsed_s": 15.827677364002739,
+      "prompt_tokens": 1359,
+      "completion_tokens": 1132,
+      "failure_signature": null,
+      "id": 46,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:41:48.281167+00:00",
+      "excerpt": "{\n  \"code\": \"import math\\nimport heapq\\nimport numpy as np\\n\\ndef topk_cosine_sim(A, Q, k):\\n    M = len(A)\\n    if M == 0:\\n        return [[] for _ in Q]\\n    D = len(A[0])\\n    \\n    # Convert to numpy for efficient computation\\n    A_np"
+    },
+    {
+      "step": 4,
+      "phase": "candidate",
+      "guidance_ref": "hint_step_2",
+      "call_id": "call_9",
+      "cost_cny": 0.023257800000000002,
+      "elapsed_s": 24.68358243699913,
+      "prompt_tokens": 1359,
+      "completion_tokens": 1927,
+      "failure_signature": null,
+      "id": 47,
+      "kind": "model_finished",
+      "timestamp": "2026-11-14T14:41:57.138326+00:00",
+      "excerpt": "{\n\"code\": \"import heapq\\nimport numpy as np\\nimport os\\n\\n# Set environment variables to avoid BLAS threading variability\\nos.environ.setdefault('OMP_NUM_THREADS', '1')\\nos.environ.setdefault('OPENBLAS_NUM_THREADS', '1')\\nos.environ.setdefa"
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_4_0",
+      "call_id": "call_8",
+      "id": 48,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:41:57.138706+00:00"
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_4_0",
+      "call_id": "call_8",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 49,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:57.514198+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.2,
+        "feedback": "Visible test passed",
+        "elapsed_s": 0.3751145970018115,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_4_0",
+      "call_id": "call_8",
+      "verifier": "code_l1_correctness",
+      "stage": "dev",
+      "id": 50,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:57.863366+00:00",
+      "result": {
+        "valid": true,
+        "score": 0.5,
+        "feedback": "Dev hidden input correctness test passed with reference equality",
+        "elapsed_s": 0.348932185996091,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_4_1",
+      "call_id": "call_9",
+      "id": 51,
+      "kind": "candidate",
+      "timestamp": "2026-11-14T14:41:57.863502+00:00"
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_4_1",
+      "call_id": "call_9",
+      "verifier": "code_l0_visible",
+      "stage": "dev",
+      "id": 52,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:58.194474+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Visible test failed: expected [[0]], got [[1]]",
+        "elapsed_s": 0.3306277390001924,
+        "failure_signature": "code/visible_test_failure"
+      }
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_4_0",
+      "call_id": "call_8",
+      "verifier": "code_l2_speedup",
+      "stage": "dev",
+      "id": 53,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:59.307496+00:00",
+      "result": {
+        "valid": false,
+        "score": 0.0,
+        "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+        "elapsed_s": 1.1126982060013688,
+        "failure_signature": "code/suspicious_timing"
+      }
+    },
+    {
+      "step": 4,
+      "action": "stop",
+      "trigger": "consultation_ladder_exhausted",
+      "score_before": 2.0177,
+      "score_after": 2.0177,
+      "accepted_candidate_id": null,
+      "feedback": "Rejected timing anomaly or speedup above the configured limit.",
+      "failure_signature": "code/suspicious_timing",
+      "id": 54,
+      "kind": "decision",
+      "timestamp": "2026-11-14T14:41:59.308183+00:00"
+    },
+    {
+      "step": 4,
+      "candidate_id": "cand_cloud_solve_3",
+      "call_id": "call_7",
+      "verifier": "held_out",
+      "stage": "final",
+      "id": 55,
+      "kind": "verification",
+      "timestamp": "2026-11-14T14:41:59.896954+00:00",
+      "result": {
+        "valid": true,
+        "score": 2.0454,
+        "feedback": "Final held-out speedup: 2.05x",
+        "elapsed_s": 0.5885214480003924,
+        "failure_signature": null
+      }
+    },
+    {
+      "step": 4,
+      "action": "final_eval",
+      "trigger": "held_out_final_evaluation",
+      "score_before": 2.0177,
+      "score_after": 2.0454,
+      "accepted_candidate_id": "cand_cloud_solve_3",
+      "feedback": null,
+      "failure_signature": null,
+      "id": 56,
+      "kind": "decision",
+      "timestamp": "2026-11-14T14:41:59.897245+00:00"
+    }
+  ],
+  "total": 56,
+  "next_offset": 56,
+  "legacy_entries": []
+}

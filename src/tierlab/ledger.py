@@ -148,6 +148,10 @@ class DecisionLedger:
             "duplicates_skipped": duplicates_skipped,
             "cloud_calls": sum(e.extra.get('model_calls', {}).get('cloud', 0) for e in self.entries),
             "local_calls": sum(e.extra.get('model_calls', {}).get('local', 0) for e in self.entries),
+            "small_model_calls": (sum(e.extra['model_calls_by_target']['local'] + e.extra['model_calls_by_target']['cloud_small']
+                                      for e in self.entries) if all('model_calls_by_target' in e.extra for e in self.entries) else None),
+            "strong_model_calls": (sum(e.extra['model_calls_by_target']['cloud'] for e in self.entries)
+                                       if all('model_calls_by_target' in e.extra for e in self.entries) else None),
             "stop_reason": next((e.trigger for e in reversed(self.entries) if e.action == 'stop'), 'unknown'),
         }
 

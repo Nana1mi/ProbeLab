@@ -1,0 +1,28 @@
+{
+  "verifier": "code_l0_visible",
+  "candidate": {
+    "id": "cand_4_0",
+    "content": "\"\"\"Optimized batch cosine similarity top-k using numpy.\"\"\"\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    M = A_np.shape[0]\n    N = Q_np.shape[0]\n    \n    if M == 0 or N == 0:\n        return [[] for _ in range(N)]\n    \n    effective_k = min(k, M)\n    \n    # Compute norms for A (M, D) -> (M, 1)\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    # Avoid division by zero\n    A_norms = np.where(A_norms == 0, 1.0, A_norms)\n    A_normalized = A_np / A_norms\n    \n    # Compute norms for Q (N, D) -> (N, 1)\n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    Q_norms = np.where(Q_norms == 0, 1.0, Q_norms)\n    Q_normalized = Q_np / Q_norms\n    \n    # Compute cosine similarity matrix: (N, M)\n    sim_matrix = np.dot(Q_normalized, A_normalized.T)\n    \n    # Find top-k indices for each query\n    # We need indices of the largest values in each row of sim_matrix\n    \n    if effective_k == M:\n        # If k >= M, just sort all and take all\n        # argsort returns ascending indices, so reverse to get descending\n        all_indices = np.argsort(sim_matrix, axis=1)[:, ::-1]\n        results = [list(row) for row in all_indices]\n    else:\n        # Use argpartition for efficiency\n        # We want the top-k largest elements.\n        # np.argpartition(arr, kth, axis) partitions the array such that the element at kth position is in sorted order,\n        # elements before are smaller (or equal), and elements after are larger (or equal).\n        # We want the largest k elements. If we partition at -k (from the end), the last k elements will be the largest k.\n        # However, argpartition doesn't guarantee order within the partitions.\n        \n        # To get top-k largest:\n        # Partition at -k. The last k elements are the largest k (unsorted).\n        # Then sort those k elements to get them in descending order.\n        \n        # Create a copy to avoid modifying original if needed, but we can work on indices\n        # Actually, argsort is often fast enough for moderate sizes. Let's stick to a robust method.\n        # For very large M and small k, argpartition is O(N*M) vs O(N*M log M) for argsort.\n        \n        # Let's use argpartition\n        # Partition indices so that the last k elements are the largest k\n        partition_idx = np.argpartition(sim_matrix, -effective_k, axis=1)[:, -effective_k:]\n        \n        # Now we have the top-k indices for each row, but they are not sorted by similarity value.\n        # We need to sort these k elements by their similarity values in descending order.\n        \n        results = []\n        for i in range(N):\n            row_indices = partition_idx[i]\n            # Get the similarity values for these indices\n            row_sims = sim_matrix[i, row_indices]\n            # Sort indices based on similarity values descending\n            sorted_local_indices = row_indices[np.argsort(row_sims)[::-1]]\n            results.append(sorted_local_indices.tolist())\n            \n    return results",
+    "metadata": {
+      "step": 4,
+      "worker_idx": 0
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.2,
+    "feedback": "Visible test passed",
+    "evidence": {
+      "status": "ok",
+      "ans": [
+        [
+          0
+        ]
+      ],
+      "elapsed_s": 0.00019260000044596381,
+      "parent_elapsed_s": 0.1866742999991402
+    },
+    "elapsed_s": 0.18978549999883398,
+    "failure_signature": null
+  }
+}

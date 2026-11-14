@@ -31,3 +31,11 @@ runs/*
 
 # Raw real-model responses and hardware smoke logs
 smoke_outputs/
+
+# Local credentials, virtual environments and editor state
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+.DS_Store

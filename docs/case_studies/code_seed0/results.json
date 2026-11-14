@@ -1,0 +1,164 @@
+[
+  {
+    "run": "code_all_local_s0",
+    "policy": "all_local",
+    "seed": 0,
+    "config_hash": "cc0c63532c",
+    "total_steps": 8,
+    "final_score": 87.4825,
+    "total_cloud_cny": 0.072515,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 89.5,
+    "total_gpu_lease_cny": 0.0,
+    "total_verify_s": 13.05,
+    "total_cloud_tokens": 13441,
+    "ba_auc": 85.9889,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 6,
+    "local_calls": 0,
+    "stop_reason": "max_steps_reached",
+    "weak_model_calls": 6,
+    "strong_model_calls": 0,
+    "gateway_cost_cny": 0.0725148
+  },
+  {
+    "run": "code_all_cloud_s0",
+    "policy": "all_cloud",
+    "seed": 0,
+    "config_hash": "986e69bdb2",
+    "total_steps": 8,
+    "final_score": 83.8883,
+    "total_cloud_cny": 0.02877,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 35.19,
+    "total_gpu_lease_cny": 0.0,
+    "total_verify_s": 15.086,
+    "total_cloud_tokens": 7866,
+    "ba_auc": 83.5071,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 6,
+    "local_calls": 0,
+    "stop_reason": "max_steps_reached",
+    "weak_model_calls": 0,
+    "strong_model_calls": 6,
+    "gateway_cost_cny": 0.02877
+  },
+  {
+    "run": "code_tierlab_s0",
+    "policy": "tierlab",
+    "seed": 0,
+    "config_hash": "dde017eab0",
+    "total_steps": 6,
+    "final_score": 90.0942,
+    "total_cloud_cny": 0.062252,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 128.12,
+    "total_gpu_lease_cny": 0.0,
+    "total_verify_s": 8.281,
+    "total_cloud_tokens": 13226,
+    "ba_auc": 89.1355,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 1,
+        "verified_improvements": 1,
+        "total_delta": 31.1594,
+        "total_cost_cny": 0.01325,
+        "roi_delta_per_cny": 2351.72
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.016818,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 7,
+    "local_calls": 0,
+    "stop_reason": "consultation_ladder_exhausted",
+    "weak_model_calls": 5,
+    "strong_model_calls": 2,
+    "gateway_cost_cny": 0.062251600000000004
+  }
+]

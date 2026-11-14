@@ -1,0 +1,261 @@
+# Pinned DeerFlow demo configuration; API keys are environment references only.
+# Operator instructions are loaded from lead_prompt.md by the launcher.
+config_version: 66
+log_level: info
+logging:
+  enhance:
+    enabled: false
+    format: text
+token_usage:
+  enabled: true
+token_budget:
+  enabled: false
+  max_tokens: 200000
+  max_input_tokens: null
+  max_output_tokens: null
+  warn_threshold: 0.8
+  hard_stop_threshold: 1.0
+recursion_limit: 100
+max_recursion_limit: 1000
+models:
+- name: vela-lead
+  display_name: VELA Lead · DeepSeek V4.1 Flash
+  use: langchain_openai:ChatOpenAI
+  model: deepseek-ai/DeepSeek-V4.1-Flash
+  api_key: $SILICONFLOW_API_KEY
+  base_url: https://api.siliconflow.cn/v1
+  max_tokens: 2048
+  timeout: 120
+  max_retries: 0
+  supports_thinking: false
+  supports_vision: false
+  extra_body:
+    enable_thinking: false
+  disable_streaming: true
+knowledge_base:
+  enabled: false
+  scope_selection_enabled: false
+tool_groups:
+- name: vela_research
+- name: file:read
+tools:
+- name: start_research
+  group: vela_research
+  use: vela_integration.tools:start_research_tool
+- name: get_research_status
+  group: vela_research
+  use: vela_integration.tools:get_research_status_tool
+- name: get_research_report
+  group: vela_research
+  use: vela_integration.tools:get_research_report_tool
+- name: read_file
+  group: file:read
+  use: deerflow.sandbox.tools:read_file_tool
+tool_search:
+  enabled: false
+  auto_promote_top_k: 3
+tool_output:
+  enabled: true
+  externalize_min_chars: 12000
+  preview_head_chars: 2000
+  preview_tail_chars: 1000
+  fallback_max_chars: 30000
+  fallback_head_chars: 8000
+  fallback_tail_chars: 3000
+  storage_subdir: .tool-results
+  exempt_tools:
+  - read_file
+  - read_file_tool
+  elide_superseded_writes: false
+  superseded_write_min_chars: 2000
+  keep_recent_writes: 1
+tool_artifacts:
+  enabled: true
+  max_entries: 100
+  detect_refs_in_text: true
+  inject_model_context: true
+  resolve_handles_in_args: true
+suggestions:
+  enabled: true
+  max_suggestions: 3
+input_polish:
+  enabled: true
+  max_chars: 4000
+  model_name: null
+loop_detection:
+  enabled: true
+  warn_threshold: 3
+  hard_limit: 5
+  window_size: 20
+  max_tracked_threads: 100
+  tool_freq_warn: 30
+  tool_freq_hard_limit: 50
+pii_redaction:
+  enabled: false
+read_before_write:
+  enabled: true
+  elide_blocked_payloads: true
+  elide_min_chars: 2000
+harness_guard:
+  enabled: true
+  write_verify_syntax: false
+  block_on_syntax_error: true
+  targeted_hints_enabled: true
+  max_repeated_error_signatures: 2
+  detect_alternating_loops: true
+  max_loop_history: 20
+  max_tracked_scopes: 1000
+projects:
+  instructions_max_bytes: 8192
+  shelf_index_max_entries: 50
+  shelf_index_max_bytes: 4096
+  trash_retention_days: 30
+  summaries_enabled: true
+  summary_max_bytes: 256
+  summary_concurrency: 2
+  summary_queue_size: 32
+  summary_timeout_seconds: 60
+  search_max_chars_per_document: 1000000
+  search_max_total_chars: 8000000
+safety_finish_reason:
+  enabled: true
+uploads:
+  max_files: 10
+  max_file_size: 52428800
+  max_total_size: 104857600
+  auto_convert_documents: false
+  pdf_converter: auto
+sandbox:
+  use: deerflow.sandbox.local:LocalSandboxProvider
+  allow_host_bash: false
+subagent_runtime:
+  max_running: 3
+  max_queued: 64
+  admission_policy: queue
+  queue_timeout_seconds: 300
+subagent_batches:
+  enabled: false
+  poll_interval_seconds: 1
+  lease_seconds: 120
+  max_items_per_batch: 5000
+  default_max_live_items: 100
+  max_live_items_per_batch: 1000
+  default_max_running_items: 3
+  max_running_items_per_batch: 64
+  max_attempts: 3
+  max_result_chars: 100000
+  result_preview_max_chars: 2000
+verification:
+  receipts_enabled: true
+  receipts_render_mode: delegation_only
+  judge_enabled: false
+  judge_model_name: null
+hitl_approval:
+  enabled: false
+  tools: []
+  default_mode: ask
+  allowed_modes:
+  - ask
+  - auto
+  review_unknown_tools: true
+  allow_tools: []
+  deny_tools: []
+  always_ask_tools: []
+  reviewer_model: null
+  reviewer_timeout_seconds: 30
+  reviewer_max_input_bytes: 65536
+  max_payload_bytes: 524288
+  child_approval_timeout_seconds: 300
+  non_interactive: deny
+  max_actions: 32
+skills:
+  container_path: /mnt/skills
+  path: /app/skills/custom
+skill_scan:
+  enabled: true
+title:
+  enabled: true
+  max_words: 6
+  max_chars: 60
+  model_name: null
+task_continuity:
+  enabled: false
+  max_batches: 32
+  max_records_per_batch: 256
+  max_record_chars: 16000
+summarization:
+  enabled: true
+  model_name: null
+  trigger:
+  - type: tokens
+    value: 32000
+  keep:
+    type: messages
+    value: 10
+  trim_tokens_to_summarize: 15564
+  summary_prompt: null
+  skill_file_read_tool_names:
+  - read_file
+  - read
+  - view
+  - cat
+memory:
+  enabled: false
+blob_storage:
+  enabled: false
+  backend: local_fs
+  backend_config: {}
+agents_api:
+  enabled: false
+skill_evolution:
+  enabled: false
+  moderation_model_name: null
+  security_fail_closed: true
+database:
+  backend: sqlite
+  sqlite_dir: /state/data
+  pool_recycle: 300
+  command_timeout: 30
+  checkpoint_channel_mode: full
+  checkpoint_delta:
+    snapshot_frequency: 10
+  checkpoint_graph_cache:
+    accessor_graph_max: 64
+run_events:
+  backend: memory
+  max_trace_content: 10240
+  track_token_usage: true
+  producer_fencing: 'off'
+agent_storage:
+  backend: file
+scheduler:
+  enabled: false
+  tool_enabled: false
+  multi_instance: false
+  poll_interval_seconds: 5
+  lease_seconds: 120
+  max_concurrent_runs: 3
+  max_concurrent_runs_per_user: 2
+  queue_timeout_seconds: 3600
+  min_once_delay_seconds: 60
+  recursion_limit: 1000
+mcp_tasks:
+  enabled: false
+  poll_interval_seconds: 5
+  lease_seconds: 120
+  max_concurrent_polls: 8
+  max_poll_backoff_seconds: 300
+  input_required_poll_interval_seconds: 60
+  tracking_degraded_after_errors: 3
+  max_result_bytes: 65536
+  result_preview_max_chars: 2000
+deployment:
+  multi_instance: false
+run_ownership:
+  lease_seconds: 30
+  grace_seconds: 10
+  heartbeat_enabled: false
+authorization:
+  enabled: false
+lead_prompt_overlay:
+  append: ''

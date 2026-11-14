@@ -1,0 +1,21 @@
+{
+  "verifier": "code_l1_correctness",
+  "candidate": {
+    "id": "cand_2_0",
+    "content": "import numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert to numpy arrays for vectorized operations\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    # Compute norms\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    \n    # Avoid division by zero by adding a small epsilon\n    A_norms = np.maximum(A_norms, 1e-12)\n    Q_norms = np.maximum(Q_norms, 1e-12)\n    \n    # Normalize vectors\n    A_normalized = A_np / A_norms\n    Q_normalized = Q_np / Q_norms\n    \n    # Compute cosine similarities: dot product of normalized vectors\n    # Shape: (N, M)\n    sims = np.dot(Q_normalized, A_normalized.T)\n    \n    N, M = sims.shape\n    \n    if k >= M:\n        # If k >= M, sort all and take all (or up to k)\n        # argsort returns indices that would sort the array ascending\n        # We want descending, so we use -sims or reverse the result\n        top_indices = np.argsort(-sims, axis=1)[:, :k]\n    else:\n        # Use argpartition for O(N*M) performance\n        # We want top-k largest. \n        # argpartition(sims, -k, axis=1) puts the k-th largest element (index M-k) in its sorted position.\n        # Elements to the right of M-k are the k largest (but unsorted among themselves).\n        # Elements to the left are smaller.\n        \n        # Get the partition indices\n        part_idx = np.argpartition(sims, -k, axis=1)[:, -k:]\n        \n        # Extract the values corresponding to these indices to sort them\n        # We need to sort the top-k candidates in descending order\n        # np.take_along_axis gets the values at part_idx for each row\n        top_k_values = np.take_along_axis(sims, part_idx, axis=1)\n        \n        # Sort the indices based on these values in descending order\n        # argsort on negative values gives descending order\n        sorted_order = np.argsort(-top_k_values, axis=1)\n        \n        # Gather the final indices\n        top_indices = np.take_along_axis(part_idx, sorted_order, axis=1)\n        \n    # Convert to list of lists\n    results = [row.tolist() for row in top_indices]\n    \n    return results",
+    "metadata": {
+      "step": 2,
+      "worker_idx": 0
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.5,
+    "feedback": "Dev hidden input correctness test passed with reference equality",
+    "evidence": {
+      "status": "ok"
+    },
+    "elapsed_s": 0.36001630000100704,
+    "failure_signature": null
+  }
+}

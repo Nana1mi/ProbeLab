@@ -1,0 +1,24 @@
+{
+  "verifier": "code_l2_speedup",
+  "candidate": {
+    "id": "cand_1_0",
+    "content": "import math\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert to numpy arrays for vectorized operations\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    # Normalize rows of A and Q\n    # Compute norms\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    \n    # Avoid division by zero\n    A_norms = np.where(A_norms == 0, 1e-12, A_norms)\n    Q_norms = np.where(Q_norms == 0, 1e-12, Q_norms)\n    \n    # Normalize vectors\n    A_normalized = A_np / A_norms\n    Q_normalized = Q_np / Q_norms\n    \n    # Compute cosine similarities: dot product of normalized vectors\n    # Shape: (N, M)\n    sims = np.dot(Q_normalized, A_normalized.T)\n    \n    # Find top-k indices for each query\n    # Use argpartition for efficiency if k is small relative to M\n    # However, for correctness and robustness across different sizes,\n    # we can use argsort or argpartition.\n    # argpartition is O(N*M) on average, argsort is O(N*M*log(M))\n    # Given the constraint of 15 seconds, vectorized numpy is much faster than pure Python loops.\n    \n    # Get indices of top-k elements\n    # We want highest similarities, so we can negate or use np.argsort with reverse\n    # np.argpartition returns indices such that the k-th element is in its sorted position\n    # and elements before are <= it, elements after are >= it (if we sort descending)\n    \n    # To get top-k largest, we can use -sims and take smallest k, or use np.argsort on -sims\n    # Or use np.argpartition on sims and pick last k (if ascending)\n    \n    N, M = sims.shape\n    \n    # Use argpartition for O(N*M) performance\n    # We want top-k largest. \n    # If we partition, the largest k elements will be in the last k positions if we sort ascending\n    # But argpartition doesn't sort the rest. \n    # So we partition to get the k-th largest element at position M-k, then sort only the last k\n    \n    # Indices for top-k largest\n    # Partition index: M - k\n    if k >= M:\n        # If k >= M, just return all indices sorted by similarity descending\n        top_indices = np.argsort(-sims, axis=1)[:, :k]\n    else:\n        # Use argpartition to find the top k elements efficiently\n        # partition index is M - k\n        # This puts the element that would be at M-k in sorted order into that position\n        # Elements to the left are smaller, elements to the right are larger\n        # So the top k are in indices [M-k : M]\n        \n        # However, argpartition only guarantees the k-th element is in place.\n        # We need to sort the last k elements to get them in descending order.\n        \n        part_idx = np.argpartition(sims, -k, axis=1)[:, -k:]\n        \n        # Extract the submatrix of top-k candidates\n        # part_idx is (N, k)\n        # We need to sort these k elements for each row\n        \n        # Create a mask or use advanced indexing to get values\n        # values = np.take_along_axis(sims, part_idx, axis=1)\n        \n        # Sort the indices based on the values in sims\n        # argsort on the values in the selected columns\n        sorted_indices_in_part = np.argsort(-np.take_along_axis(sims, part_idx, axis=1), axis=1)\n        \n        # Gather the final indices\n        top_indices = np.take_along_axis(part_idx, sorted_indices_in_part, axis=1)\n        \n    # Convert to list of lists\n    results = [row.tolist() for row in top_indices]\n    \n    return results",
+    "metadata": {
+      "step": 1,
+      "worker_idx": 0
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 76.7003,
+    "feedback": "Verified speedup: 76.70x (Candidate: 3.8ms, Ref: 290.5ms)",
+    "evidence": {
+      "speedup": 76.7003,
+      "ref_med_s": 0.2905,
+      "cand_med_s": 0.0038,
+      "significant": true
+    },
+    "elapsed_s": 2.007225400000607,
+    "failure_signature": null
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "target": "cloud",
+  "model_name": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "prompt_tokens": 1008,
+  "cached_tokens": 0,
+  "completion_tokens": 358,
+  "cost_cny": 0.00488,
+  "wall_clock_s": 2.5705842999996094,
+  "content": "{\"code\": \"import numpy as np\\n\\n\\ndef topk_cosine_sim(A, Q, k):\\n    A_arr = np.asarray(A, dtype=np.float64)\\n    Q_arr = np.asarray(Q, dtype=np.float64)\\n    N = Q_arr.shape[0]\\n    M = A_arr.shape[0]\\n    if k <= 0 or M == 0 or N == 0:\\n        return [[] for _ in range(N)]\\n    kk = min(k, M)\\n\\n    a_norms = np.linalg.norm(A_arr, axis=1)\\n    q_norms = np.linalg.norm(Q_arr, axis=1)\\n    a_norms[a_norms == 0] = 1.0\\n    q_norms[q_norms == 0] = 1.0\\n    A_n = A_arr / a_norms[:, None]\\n    Q_n = Q_arr / q_norms[:, None]\\n\\n    sims = Q_n @ A_n.T\\n\\n    if kk < M:\\n        idx = np.argpartition(-sims, kk - 1, axis=1)[:, :kk]\\n    else:\\n        idx = np.broadcast_to(np.arange(M), (N, M)).copy()\\n\\n    sel = np.take_along_axis(sims, idx, axis=1)\\n    order = np.argsort(-sel, axis=1, kind='stable')\\n    idx = np.take_along_axis(idx, order, axis=1)\\n\\n    return idx.tolist()\\n\"}",
+  "extra": {}
+}

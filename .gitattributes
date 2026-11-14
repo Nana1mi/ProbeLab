@@ -1,0 +1,4 @@
+# Preserve archived experiment bytes and their recorded SHA-256 values.
+docs/case_studies/** -text -whitespace
+# Blank context lines are meaningful in a unified patch.
+integrations/deerflow/frontend/*.patch -whitespace

@@ -1,0 +1,29 @@
+{
+  "task": "code",
+  "kind": "local",
+  "target": "cloud_small",
+  "backend": "real",
+  "model": "Qwen/Qwen3.6-35B-A3B",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an autonomous code/solution generator. Output only the requested solution matching specifications without conversational commentary."
+    },
+    {
+      "role": "user",
+      "content": "### TASK\nOptimize batch cosine similarity top-K algorithm against reference implementation.\n\n### COMPLETE TASK CONTEXT & BEST CANDIDATE\nTASK SPECIFICATION:\n- Goal: Optimize batch cosine similarity top-K algorithm against reference implementation.\n- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n- Available libraries: Python standard library (math, random, collections, heapq); stdlib, numpy\n- Execution timeout limit: 15.0 seconds\n\nCURRENT BEST CANDIDATE CODE:\n```python\n\"\"\"Optimized batch cosine similarity top-k using numpy.\"\"\"\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    # Compute norms for A and Q\n    # A_np shape: (M, D)\n    # Q_np shape: (N, D)\n    \n    # Normalize A (rows) to unit vectors\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    # Avoid division by zero\n    A_norms = np.where(A_norms == 0, 1.0, A_norms)\n    A_normalized = A_np / A_norms\n    \n    # Normalize Q (rows) to unit vectors\n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    Q_norms = np.where(Q_norms == 0, 1.0, Q_norms)\n    Q_normalized = Q_np / Q_norms\n    \n    # Compute cosine similarity matrix: (N, M)\n    # Cosine sim is dot product of normalized vectors\n    sim_matrix = np.dot(Q_normalized, A_normalized.T)\n    \n    # Find top-k indices for each query\n    # We need to handle cases where k > M\n    M = A_np.shape[0]\n    effective_k = min(k, M)\n    \n    # Use argpartition for efficiency if k is small relative to M, \n    # or argsort if k is large. However, for general optimization,\n    # argsort is often fast enough and simpler for small k.\n    # Let's use argsort on the negative similarity to get top-k largest.\n    \n    # Get indices of top-k similar items for each query\n    # sim_matrix shape: (N, M)\n    # We want the indices of the largest values in each row.\n    \n    # Using np.argpartition is O(N*M) but gets the top-k in place.\n    # Then we sort just those k elements.\n    \n    results = []\n    if M == 0:\n        return [[] for _ in Q]\n        \n    # Initialize result list\n    for i in range(Q_np.shape[0]):\n        row = sim_matrix[i]\n        if effective_k == M:\n            # If k >= M, just sort all\n            indices = np.argsort(row)[::-1]\n        else:\n            # Use argpartition to find top-k indices\n            # np.argpartition returns indices such that the k-th element is in its sorted position\n            # and all elements before are <= and all after are >= (or vice versa)\n            # We want largest, so we partition at M - k\n            # Actually, simpler: partition at k, then take last k and sort them descending\n            # Or partition at M-k, take first k and sort them descending\n            \n            # Let's use argsort for simplicity and speed with numpy's optimized C backend\n            # For very large M and small k, argpartition is better, but argsort is often sufficient\n            # and less prone to edge case bugs in manual implementation.\n            # Given the constraint of 15s, numpy argsort is very fast.\n            indices = np.argsort(row)[::-1]\n            \n        results.append(indices[:effective_k].tolist())\n        \n    return results\n```\n\n### CURRENT STATE\nITERATION: 3\nSTAGNANT_STEPS: 1\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 77.2155 (Speedup: 77.22x)\nLAST_FAILURE_SIGNATURE: code/visible_test_failure\nDEV_FEEDBACK: Visible test failed: expected [[0]], got [[1]]\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\n\"\"\"Optimized batch cosine similarity top-k using numpy.\"\"\"\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    # Handle empty cases\n    if A_np.shape[0] == 0 or Q_np.shape[0] == 0:\n        return [[] for _ in range(Q_np.shape[0])]\n        \n    M, D = A_np.shape\n    N = Q_np.shape[0]\n    \n    # Compute norms for A and Q\n    # A_np shape: (M, D)\n    # Q_np shape: (N, D)\n    \n    # Normalize A (rows) to unit vectors\n    A_norms = np.linalg.norm(A_n\n\n### VARIATION ANGLE\nvariation_1_seed_0\n\n### INSTRUCTION\nGenerate the complete revised candidate solution now."
+    },
+    {
+      "role": "user",
+      "content": "Return exactly one JSON object with one string field \"code\". The code must implement the complete Python candidate required above. No explanations, proofs, commentary or markdown. Put the Python implementation directly in \"code\"."
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.6,
+  "extra_body": {
+    "enable_thinking": false,
+    "response_format": {
+      "type": "json_object"
+    }
+  }
+}

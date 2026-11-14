@@ -1,0 +1,64 @@
+{
+  "research_run": "run_code_tierlab_12850fbd",
+  "chat_url": "http://127.0.0.1:3000/workspace/chats/2be37459-e5f4-4ea6-ae6c-b9aabd85fb8e",
+  "real_research": true,
+  "small_model": "Qwen/Qwen3.6-35B-A3B",
+  "strong_model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "small_calls": 7,
+  "strong_calls": 2,
+  "call_count_source": "Reconstructed from controller path and ledger: weak batches K=1,2,2,2; one hint and one solve. Ledger cloud_calls=9 is a billing-route total, not a strong-model count.",
+  "summary": {
+    "run": "run_code_tierlab_12850fbd",
+    "policy": "tierlab",
+    "seed": 0,
+    "config_hash": "b2e6d365de",
+    "total_steps": 5,
+    "final_score": 0.9284,
+    "total_cloud_cny": 0.138268,
+    "total_gpu_s": 0.0,
+    "total_gpu_cny": 0.0,
+    "total_wall_s": 92.65,
+    "total_gpu_lease_cny": 0.0,
+    "total_verify_s": 2.851,
+    "total_cloud_tokens": 20693,
+    "ba_auc": 0.6993,
+    "consultations_by_rung": {
+      "hint": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.021997,
+        "roi_delta_per_cny": 0.0
+      },
+      "solve": {
+        "count": 1,
+        "verified_improvements": 0,
+        "total_delta": 0.0,
+        "total_cost_cny": 0.055349,
+        "roi_delta_per_cny": 0.0
+      },
+      "diagnose": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      },
+      "replan": {
+        "count": 0,
+        "verified_improvements": 0,
+        "total_delta": 0,
+        "total_cost_cny": 0,
+        "roi_delta_per_cny": 0.0
+      }
+    },
+    "lesson_hits": 0,
+    "duplicates_skipped": 0,
+    "cloud_calls": 9,
+    "local_calls": 0,
+    "stop_reason": "consultation_ladder_exhausted"
+  },
+  "verdict": "Escalation occurred; no accepted optimization; initial reference retained.",
+  "measurement_note": "0.1 is the development noise-floor score; 0.9284 is held-out runtime ratio. Do not treat their difference as an optimization gain.",
+  "recording_limit": "Per-candidate source, complete solve output, and per-candidate rejection evidence were not persisted by this engine. Generic timing rejection cannot identify its exact cause."
+}

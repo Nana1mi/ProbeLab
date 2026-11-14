@@ -1,0 +1,28 @@
+{
+  "verifier": "code_l0_visible",
+  "candidate": {
+    "id": "cand_6_0",
+    "content": "\"\"\"Optimized batch cosine similarity top-k using numpy.\"\"\"\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert inputs to numpy arrays for vectorized operations\n    A_np = np.array(A, dtype=np.float64)\n    Q_np = np.array(Q, dtype=np.float64)\n    \n    M = A_np.shape[0]\n    N = Q_np.shape[0]\n    \n    # Handle edge cases\n    if M == 0 or N == 0:\n        return [[] for _ in range(N)]\n    \n    effective_k = min(k, M)\n    \n    if effective_k == 0:\n        return [[] for _ in range(N)]\n\n    # Compute L2 norms for A (M, D) -> (M, 1)\n    A_norms = np.linalg.norm(A_np, axis=1, keepdims=True)\n    # Avoid division by zero by setting zero norms to 1.0\n    A_norms = np.where(A_norms == 0, 1.0, A_norms)\n    A_normalized = A_np / A_norms\n    \n    # Compute L2 norms for Q (N, D) -> (N, 1)\n    Q_norms = np.linalg.norm(Q_np, axis=1, keepdims=True)\n    Q_norms = np.where(Q_norms == 0, 1.0, Q_norms)\n    Q_normalized = Q_np / Q_norms\n    \n    # Compute cosine similarity matrix: (N, M)\n    # This is equivalent to dot product of normalized vectors\n    sim_matrix = np.dot(Q_normalized, A_normalized.T)\n    \n    # Find top-k indices for each query\n    results = []\n    \n    if effective_k == M:\n        # If k >= M, we need all indices sorted by similarity descending\n        # argsort ascending, then reverse to get descending order\n        indices = np.argsort(sim_matrix, axis=1)[:, ::-1]\n        # Convert to list of lists\n        for i in range(N):\n            results.append(indices[i].tolist())\n    else:\n        # Use argpartition for O(N*M) complexity to find top-k candidates\n        # We want the largest k elements.\n        # np.argpartition(arr, -k, axis=1) partitions such that the largest k elements\n        # are in the last k positions, but not necessarily sorted among themselves.\n        \n        # Get partition indices\n        partition_indices = np.argpartition(sim_matrix, -effective_k, axis=1)\n        \n        # Extract the top-k candidate indices for each row\n        # These are in the last `effective_k` columns of the partitioned array\n        top_k_indices = partition_indices[:, -effective_k:]\n        \n        # Gather the similarity values for these top-k candidates\n        # sim_matrix[i, top_k_indices[i]] gives the values\n        top_k_values = np.take_along_axis(sim_matrix, top_k_indices, axis=1)\n        \n        # Sort the top-k values within each row to get the correct descending order\n        # argsort ascending, then reverse the last axis to get descending\n        sort_indices = np.argsort(-top_k_values, axis=1)\n        \n        # Rearrange top_k_indices according to sort_indices\n        final_indices = np.take_along_axis(top_k_indices, sort_indices, axis=1)\n        \n        # Convert to list of lists\n        for i in range(N):\n            results.append(final_indices[i].tolist())\n            \n    return results",
+    "metadata": {
+      "step": 6,
+      "worker_idx": 0
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.2,
+    "feedback": "Visible test passed",
+    "evidence": {
+      "status": "ok",
+      "ans": [
+        [
+          0
+        ]
+      ],
+      "elapsed_s": 0.000219899997318862,
+      "parent_elapsed_s": 0.18458649999956833
+    },
+    "elapsed_s": 0.18743019999965327,
+    "failure_signature": null
+  }
+}

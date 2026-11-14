@@ -1,0 +1,28 @@
+{
+  "verifier": "code_l0_visible",
+  "candidate": {
+    "id": "cand_cloud_4",
+    "content": "import numpy as np\n\n\ndef topk_cosine_sim(A, Q, k):\n    A_arr = np.asarray(A, dtype=np.float64)\n    Q_arr = np.asarray(Q, dtype=np.float64)\n    N = Q_arr.shape[0]\n    M = A_arr.shape[0]\n    if k <= 0 or M == 0 or N == 0:\n        return [[] for _ in range(N)]\n    kk = min(k, M)\n\n    a_norms = np.linalg.norm(A_arr, axis=1)\n    q_norms = np.linalg.norm(Q_arr, axis=1)\n    a_norms[a_norms == 0] = 1.0\n    q_norms[q_norms == 0] = 1.0\n    A_n = A_arr / a_norms[:, None]\n    Q_n = Q_arr / q_norms[:, None]\n\n    sims = Q_n @ A_n.T\n\n    if kk < M:\n        idx = np.argpartition(-sims, kk - 1, axis=1)[:, :kk]\n    else:\n        idx = np.broadcast_to(np.arange(M), (N, M)).copy()\n\n    sel = np.take_along_axis(sims, idx, axis=1)\n    order = np.argsort(-sel, axis=1, kind='stable')\n    idx = np.take_along_axis(idx, order, axis=1)\n\n    return idx.tolist()",
+    "metadata": {
+      "step": 4,
+      "origin": "cloud"
+    }
+  },
+  "result": {
+    "valid": true,
+    "score": 0.2,
+    "feedback": "Visible test passed",
+    "evidence": {
+      "status": "ok",
+      "ans": [
+        [
+          0
+        ]
+      ],
+      "elapsed_s": 0.00017609999849810265,
+      "parent_elapsed_s": 0.18244899999990594
+    },
+    "elapsed_s": 0.1854163999996672,
+    "failure_signature": null
+  }
+}

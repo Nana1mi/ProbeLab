@@ -1,0 +1,54 @@
+{
+  "run": "code_all_cloud_s0",
+  "policy": "all_cloud",
+  "seed": 0,
+  "config_hash": "986e69bdb2",
+  "total_steps": 8,
+  "final_score": 83.8883,
+  "total_cloud_cny": 0.02877,
+  "total_gpu_s": 0.0,
+  "total_gpu_cny": 0.0,
+  "total_wall_s": 35.19,
+  "total_gpu_lease_cny": 0.0,
+  "total_verify_s": 15.086,
+  "total_cloud_tokens": 7866,
+  "ba_auc": 83.5071,
+  "consultations_by_rung": {
+    "hint": {
+      "count": 0,
+      "verified_improvements": 0,
+      "total_delta": 0,
+      "total_cost_cny": 0,
+      "roi_delta_per_cny": 0.0
+    },
+    "solve": {
+      "count": 0,
+      "verified_improvements": 0,
+      "total_delta": 0,
+      "total_cost_cny": 0,
+      "roi_delta_per_cny": 0.0
+    },
+    "diagnose": {
+      "count": 0,
+      "verified_improvements": 0,
+      "total_delta": 0,
+      "total_cost_cny": 0,
+      "roi_delta_per_cny": 0.0
+    },
+    "replan": {
+      "count": 0,
+      "verified_improvements": 0,
+      "total_delta": 0,
+      "total_cost_cny": 0,
+      "roi_delta_per_cny": 0.0
+    }
+  },
+  "lesson_hits": 0,
+  "duplicates_skipped": 0,
+  "cloud_calls": 6,
+  "local_calls": 0,
+  "stop_reason": "max_steps_reached",
+  "weak_model_calls": 0,
+  "strong_model_calls": 6,
+  "gateway_cost_cny": 0.02877
+}

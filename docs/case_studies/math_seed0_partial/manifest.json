@@ -1,0 +1,20 @@
+{
+  "tasks": [
+    "math"
+  ],
+  "policies": [
+    "all_local",
+    "all_cloud",
+    "tierlab"
+  ],
+  "seed": 0,
+  "created_unix": 1794650345.4025826,
+  "max_steps": 6,
+  "stagnation_patience": 4,
+  "candidate_max_tokens": 4096,
+  "hint_max_tokens": 400,
+  "k": 1,
+  "code_max_speedup": 1000,
+  "selection": "All runs retained; exploratory single-case comparison.",
+  "success": "Higher quality than both baselines, or higher quality than small-only and >=95% big-only quality at lower cost. Code differences must exceed 10% and survive fresh held-out retiming; math differences must exceed 0.001."
+}

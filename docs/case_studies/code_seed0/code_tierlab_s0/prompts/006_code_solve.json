@@ -1,0 +1,29 @@
+{
+  "task": "code",
+  "kind": "solve",
+  "target": "cloud",
+  "backend": "real",
+  "model": "deepseek-ai/DeepSeek-V4.1-Flash",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert research scientist assisting an autonomous research agent. All outputs must be strictly actionable, scientifically precise, and within the length limit. Do not include conversational filler. Directly implement the complete solution to achieve verified improvement. Output complete, valid code or data matching the task specifications."
+    },
+    {
+      "role": "user",
+      "content": "### CURRENT STATE CARD\nITERATION: 4\nSTAGNANT_STEPS: 1\nTASK: CODE\nGOAL: Optimize batch cosine similarity top-K algorithm against reference implementation.\nCURRENT_BEST_SCORE: 107.8597 (Speedup: 107.86x)\nLAST_FAILURE_SIGNATURE: candidate/duplicate\nDEV_FEEDBACK: Repeated a previously seen candidate; no improvement. Verified speedup: 107.86x (Candidate: 2.8ms, Ref: 303.4ms)\nREQUIREMENT: Python file defining topk_cosine_sim(A, Q, k) returning list of list of top-k indices.\nPREVIOUS ATTEMPT (EXCERPT):\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert to numpy arrays, using float32 for speed and memory efficiency\n    # Cosine similarity ranking is robust to float32 precision\n    A_np = np.array(A, dtype=np.float32)\n    Q_np = np.array(Q, dtype=np.float32)\n    \n    # Compute squared norms for A and Q\n    # Using einsum for potentially faster squared norm computation\n    A_sq_norms = np.einsum('ij,ij->i', A_np, A_np)\n    Q_sq_norms = np.einsum('ij,ij->i', Q_np, Q_np)\n    \n    # Compute norms, handling zero vectors by a\n### PREVIOUS ATTEMPT FEEDBACK\nSignature: candidate/duplicate\nRepeated a previously seen candidate; no improvement. Verified speedup: 107.86x (Candidate: 2.8ms, Ref: 303.4ms)\n### FULL TASK SPECIFICATIONS & CURRENT BEST\nTASK SPECIFICATION:\n- Goal: Optimize batch cosine similarity top-K algorithm against reference implementation.\n- Function signature: def topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]\n- Input/Output: A is database vectors (M x D), Q is query vectors (N x D). For each query in Q, return top-k indices in A with highest cosine similarity.\n- Available libraries: Python standard library (math, random, collections, heapq); stdlib, numpy\n- Execution timeout limit: 15.0 seconds\n\nCURRENT BEST CANDIDATE CODE:\n```python\nimport numpy as np\n\ndef topk_cosine_sim(A: list[list[float]], Q: list[list[float]], k: int) -> list[list[int]]:\n    # Convert to numpy arrays, using float32 for speed and memory efficiency\n    # Cosine similarity ranking is robust to float32 precision\n    A_np = np.array(A, dtype=np.float32)\n    Q_np = np.array(Q, dtype=np.float32)\n    \n    # Compute squared norms for A and Q\n    # Using einsum for potentially faster squared norm computation\n    A_sq_norms = np.einsum('ij,ij->i', A_np, A_np)\n    Q_sq_norms = np.einsum('ij,ij->i', Q_np, Q_np)\n    \n    # Compute norms, handling zero vectors by adding epsilon\n    # np.maximum is efficient and vectorized\n    A_norms = np.maximum(np.sqrt(A_sq_norms), 1e-10)\n    Q_norms = np.maximum(np.sqrt(Q_sq_norms), 1e-10)\n    \n    # Normalize vectors\n    # Reshape for broadcasting: (N, 1) and (M, 1)\n    A_normalized = A_np / A_norms[:, np.newaxis]\n    Q_normalized = Q_np / Q_norms[:, np.newaxis]\n    \n    # Compute cosine similarities using a single GEMM\n    # Shape: (N, M)\n    sims = np.dot(Q_normalized, A_normalized.T)\n    \n    N, M = sims.shape\n    \n    # Handle cases where k >= M\n    if k >= M:\n        # Sort all indices by similarity descending\n        # argsort returns ascending, so we negate or use -sims\n        top_indices = np.argsort(-sims, axis=1)[:, :k]\n    else:\n        # Use argpartition to efficiently find the top k elements\n        # argpartition(sims, -k, axis=1) places the k-th largest element at index M-k\n        # Elements from M-k to M-1 are the top k (unsorted)\n        part_idx = np.argpartition(sims, -k, axis=1)[:, -k:]\n        \n        # Extract the similarity values for these top k candidates\n        # Use take_along_axis to get values corresponding to part_idx\n        top_k_sims = np.take_along_axis(sims, part_idx, axis=1)\n        \n        # Sort these top k candidates by similarity descending\n        # argsort on the negated values gives ascending order of negated -> descending order of original\n        sorted_indices_in_part = np.argsort(-top_k_sims, axis=1)\n        \n        # Gather the final indices\n        top_indices = np.take_along_axis(part_idx, sorted_indices_in_part, axis=1)\n    \n    # Convert to list of lists\n    results = [row.tolist() for row in top_indices]\n    \n    return results\n```\n\n### INSTRUCTION\nDirectly generate the complete improved candidate solution code/JSON now."
+    },
+    {
+      "role": "user",
+      "content": "Return exactly one JSON object with one string field \"code\". The code must implement the complete Python candidate required above. No explanations, proofs, commentary or markdown. Put the Python implementation directly in \"code\"."
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0.7,
+  "extra_body": {
+    "enable_thinking": false,
+    "response_format": {
+      "type": "json_object"
+    }
+  }
+}

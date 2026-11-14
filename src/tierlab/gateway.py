@@ -27,6 +27,7 @@ from tierlab.config import load_models_config
 from tierlab.exceptions import BudgetExceededError, ConfigurationError
 from tierlab.mock_llm import MockLLMBackend
 from tierlab.prompts import json_code_request
+from tierlab.trace import ResearchTrace
 from tierlab.types import (
     Budget,
     ModelEndpointConfig,
@@ -66,6 +67,8 @@ class ModelGateway:
         self.mock_backend = mock_backend or MockLLMBackend()
         self.prompt_dump_dir = Path(prompt_dump_dir) if prompt_dump_dir else None
         self.request_count = 0
+        self.trace: ResearchTrace | None = None
+        self.trace_context: dict[str, Any] = {}
         for label in ('cloud_model', 'local_model', 'cloud_small_model'):
             endpoint = getattr(self.config, label)
             if endpoint is None:
@@ -240,6 +243,13 @@ class ModelGateway:
                        'extra_body': self._merge_extra_body(endpoint.extra_body, extra_body or {})}
             (self.prompt_dump_dir / f'{self.request_count:03d}_{task_class}_{kind}.json').write_text(
                 json.dumps(request, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+        call_id = f'call_{self.request_count}'
+        context = dict(self.trace_context)
+        if self.trace:
+            self.trace.record('model_started', **context, call_id=call_id,
+                              role='strong' if resolved_target == 'cloud' else 'small',
+                              model=endpoint.name, target=resolved_target, backend=self.backend,
+                              task=task_class, messages=messages, max_tokens=max_tokens)
         t0 = time.perf_counter()
         if self.backend == "mock":
             mock_res = self.mock_backend.generate(
@@ -255,14 +265,16 @@ class ModelGateway:
             cached = mock_res.cached_tokens
             content = mock_res.content
         else:
-            p_tokens, cached, c_tokens, content, wall_clock_s = await self._call_real(
-                target=resolved_target,
-                endpoint=endpoint,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temperature,
-                extra_body=extra_body,
-            )
+            try:
+                p_tokens, cached, c_tokens, content, wall_clock_s = await self._call_real(
+                    target=resolved_target, endpoint=endpoint, messages=messages,
+                    max_tokens=max_tokens, temperature=temperature, extra_body=extra_body,
+                )
+            except Exception as error:
+                if self.trace:
+                    self.trace.record('model_failed', **context, call_id=call_id,
+                                      error=type(error).__name__, elapsed_s=time.perf_counter()-t0)
+                raise
 
         # 3. COST ACCOUNTING
         cost = self.calculate_cost(endpoint.pricing, p_tokens, cached, c_tokens)
@@ -282,9 +294,15 @@ class ModelGateway:
             cost_cny=cost,
             wall_clock_s=wall_clock_s,
             content=content,
-            extra={'failure_signature': 'model/empty_response'} if not content.strip() else {},
+            extra={'trace_call_id': call_id,
+                   **({'failure_signature': 'model/empty_response'} if not content.strip() else {})},
         )
         self.call_history.append(record)
+        if self.trace:
+            self.trace.record('model_finished', **context, call_id=call_id, output=content,
+                              cost_cny=cost, elapsed_s=wall_clock_s,
+                              prompt_tokens=p_tokens, completion_tokens=c_tokens,
+                              failure_signature=record.extra.get('failure_signature'))
         return record
 
     @staticmethod

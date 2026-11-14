@@ -1,0 +1,18 @@
+--- a/frontend/src/components/workspace/messages/message-group.tsx
++++ b/frontend/src/components/workspace/messages/message-group.tsx
+@@ -62,6 +62,7 @@
+   UnsafeLink,
+ } from "./markdown-link";
+ import { MessageReasoning } from "./message-reasoning";
++import { ResearchCollaborationRuns } from "./research-collaboration";
+ import { ToolCallDetails } from "./tool-call-details";
+ 
+ interface MessageGroupProps {
+@@ -530,6 +531,7 @@
+         </p>
+       ) : null}
+       {processingPanel}
++      <ResearchCollaborationRuns messages={messages} />
+       {clarificationTextSteps.map((step) => (
+         <div key={step.id} className="w-full">
+           <MarkdownContent

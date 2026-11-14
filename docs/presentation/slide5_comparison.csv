@@ -1,0 +1,4 @@
+policy,small_calls,strong_calls,strong_only_cost_cny_assuming_free_small_model,original_both_api_cost_cny,frozen_program_median_ms,frozen_program_median_speedup
+all_local,6,0,0.0,0.0725148,2.7206999984628055,101.00029409903671
+all_cloud,0,6,0.02877,0.02877,2.753700002358528,100.40901324051877
+tierlab,5,2,0.010875999999999999,0.0622516,2.3927000002004206,115.90567140750026
